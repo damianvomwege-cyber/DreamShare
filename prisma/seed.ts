@@ -7,7 +7,10 @@ import { DREAM_CATEGORIES } from "../src/lib/constants";
 import { hashPassword } from "../src/lib/security";
 
 async function main() {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString =
+    process.env.DATABASE_URL_UNPOOLED ??
+    process.env.POSTGRES_URL_NON_POOLING ??
+    process.env.DATABASE_URL;
 
   if (!connectionString) {
     throw new Error("DATABASE_URL is required.");
