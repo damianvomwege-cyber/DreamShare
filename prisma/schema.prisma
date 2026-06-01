@@ -1,0 +1,378 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+  OWNER
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum DreamVisibility {
+  PUBLIC
+  FOLLOWERS
+  PRIVATE
+}
+
+enum DreamStatus {
+  PUBLISHED
+  HIDDEN
+  DELETED
+}
+
+enum DreamMood {
+  PEACEFUL
+  JOYFUL
+  ANXIOUS
+  SCARY
+  MELANCHOLY
+  CONFUSING
+  EPIC
+  ROMANTIC
+  SURREAL
+  OTHER
+}
+
+enum ReactionType {
+  LIKE
+  INTERESTING
+  CREEPY
+  FUNNY
+  AMAZING
+}
+
+enum NotificationType {
+  NEW_FOLLOWER
+  NEW_COMMENT
+  NEW_REPLY
+  NEW_REACTION
+  DREAM_TRENDING
+  MODERATION
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+enum ReportTargetType {
+  DREAM
+  COMMENT
+  REPLY
+  USER
+}
+
+enum AdminAction {
+  LOGIN
+  LOGOUT
+  USER_BAN
+  USER_SUSPEND
+  USER_DELETE
+  DREAM_DELETE
+  COMMENT_DELETE
+  REPLY_DELETE
+  ROLE_CHANGE
+  REPORT_RESOLVE
+  SETUP_COMPLETE
+}
+
+model User {
+  id                     String    @id @default(cuid())
+  email                  String    @unique
+  emailVerified          DateTime?
+  username               String    @unique
+  displayName            String
+  bio                    String?   @db.VarChar(280)
+  avatarUrl              String?
+  bannerUrl              String?
+  passwordHash           String
+  role                   Role      @default(USER)
+  status                 UserStatus @default(ACTIVE)
+  privateProfile         Boolean   @default(false)
+  showSavedDreams        Boolean   @default(false)
+  emailNotifications     Boolean   @default(true)
+  pushNotifications      Boolean   @default(true)
+  lastLoginAt            DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  dreams                 Dream[]
+  comments               Comment[]
+  replies                Reply[]
+  reactions              Reaction[]
+  bookmarks              Bookmark[]
+  shares                 Share[]
+  notifications          Notification[] @relation("NotificationRecipient")
+  triggeredNotifications Notification[] @relation("NotificationActor")
+  reportsMade            Report[]       @relation("ReportReporter")
+  reportsReceived        Report[]       @relation("ReportUser")
+  reviewedReports        Report[]       @relation("ReportReviewer")
+  following              Follow[]       @relation("UserFollowing")
+  followers              Follow[]       @relation("UserFollowers")
+  adminLogs              AdminLog[]     @relation("AdminLogActor")
+
+  @@index([role])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String
+  icon        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  dreams      Dream[]
+}
+
+model Dream {
+  id           String          @id @default(cuid())
+  title        String          @db.VarChar(140)
+  description  String          @db.Text
+  imageUrl     String?
+  mood         DreamMood       @default(OTHER)
+  tags         String[]        @default([])
+  visibility   DreamVisibility @default(PUBLIC)
+  status       DreamStatus     @default(PUBLISHED)
+  likeCount    Int             @default(0)
+  commentCount Int             @default(0)
+  shareCount   Int             @default(0)
+  viewCount    Int             @default(0)
+  editedAt     DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  authorId     String
+  categoryId   String
+  author       User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category     Category        @relation(fields: [categoryId], references: [id])
+  comments     Comment[]
+  reactions    Reaction[]
+  bookmarks    Bookmark[]
+  shares       Share[]
+  reports      Report[]
+  notifications Notification[]
+
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([status, visibility, createdAt])
+  @@index([likeCount, commentCount, shareCount])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.VarChar(1000)
+  editedAt  DateTime?
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dreamId   String
+  authorId  String
+  dream     Dream    @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replies   Reply[]
+  reports   Report[]
+  notifications Notification[]
+
+  @@index([dreamId, createdAt])
+  @@index([authorId])
+}
+
+model Reply {
+  id            String   @id @default(cuid())
+  content       String   @db.VarChar(1000)
+  editedAt      DateTime?
+  deletedAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  commentId     String
+  authorId      String
+  parentReplyId String?
+  comment       Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentReply   Reply?   @relation("NestedReplies", fields: [parentReplyId], references: [id], onDelete: Cascade)
+  childReplies  Reply[]  @relation("NestedReplies")
+  reports       Report[]
+  notifications Notification[]
+
+  @@index([commentId, createdAt])
+  @@index([authorId])
+}
+
+model Reaction {
+  id        String       @id @default(cuid())
+  type      ReactionType
+  createdAt DateTime     @default(now())
+
+  dreamId   String
+  userId    String
+  dream     Dream        @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([dreamId, userId, type])
+  @@index([dreamId, type])
+  @@index([userId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  dreamId   String
+  userId    String
+  dream     Dream    @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([dreamId, userId])
+  @@index([userId, createdAt])
+}
+
+model Share {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  dreamId     String
+  userId      String?
+  anonymousId String?
+  dream       Dream    @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([dreamId, userId])
+  @@unique([dreamId, anonymousId])
+  @@index([dreamId, createdAt])
+  @@index([userId])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  followerId  String
+  followingId String
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  type        NotificationType
+  message     String
+  readAt      DateTime?
+  createdAt   DateTime         @default(now())
+
+  recipientId String
+  actorId     String?
+  dreamId     String?
+  commentId   String?
+  replyId     String?
+  recipient   User             @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  actor       User?            @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  dream       Dream?           @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  comment     Comment?         @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reply       Reply?           @relation(fields: [replyId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, readAt, createdAt])
+}
+
+model Report {
+  id          String           @id @default(cuid())
+  targetType  ReportTargetType
+  reason      String           @db.VarChar(500)
+  details     String?          @db.VarChar(1500)
+  status      ReportStatus     @default(OPEN)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  resolvedAt  DateTime?
+
+  reporterId  String
+  reviewerId  String?
+  dreamId     String?
+  commentId   String?
+  replyId     String?
+  userId      String?
+  reporter    User             @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reviewer    User?            @relation("ReportReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  user        User?            @relation("ReportUser", fields: [userId], references: [id], onDelete: Cascade)
+  dream       Dream?           @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  comment     Comment?         @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reply       Reply?           @relation(fields: [replyId], references: [id], onDelete: Cascade)
+
+  @@index([targetType, status])
+  @@index([reporterId])
+}
+
+model AdminLog {
+  id         String      @id @default(cuid())
+  action     AdminAction
+  targetType String?
+  targetId   String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime    @default(now())
+
+  actorId    String?
+  actor      User?       @relation("AdminLogActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  email     String
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([email])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  email     String
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([email])
+}
+
+model LoginAttempt {
+  id            String   @id @default(cuid())
+  identifier    String   @unique
+  count         Int      @default(0)
+  lockedUntil   DateTime?
+  lastAttemptAt DateTime @default(now())
+  ipAddress     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

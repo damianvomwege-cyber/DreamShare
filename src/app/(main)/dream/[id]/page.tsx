@@ -1,0 +1,173 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import { CommentSection } from "@/components/comments/comment-section";
+import { DreamOwnerControls } from "@/components/dreams/dream-owner-controls";
+import { ReactionBar } from "@/components/dreams/reaction-bar";
+import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import type { ReactionType } from "@/generated/prisma/client";
+import { getCurrentUser } from "@/lib/auth";
+import { MOOD_LABELS, REACTION_LABELS } from "@/lib/constants";
+import { getDreamById } from "@/lib/data";
+import { getPrisma } from "@/lib/prisma";
+import { profilePath, timeAgo } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const dream = await getPrisma().dream.findUnique({
+    where: { id },
+    select: { title: true, description: true },
+  });
+
+  return {
+    title: dream?.title ?? "Dream",
+    description: dream?.description.slice(0, 155),
+  };
+}
+
+function reactionSummary(
+  dream: NonNullable<Awaited<ReturnType<typeof getDreamById>>>,
+  currentUserId?: string,
+) {
+  const counts = Object.fromEntries(
+    (Object.keys(REACTION_LABELS) as ReactionType[]).map((type) => [type, 0]),
+  ) as Record<ReactionType, number>;
+  const activeReactions: ReactionType[] = [];
+
+  for (const reaction of dream.reactions) {
+    counts[reaction.type] += 1;
+    if (reaction.userId === currentUserId) activeReactions.push(reaction.type);
+  }
+
+  return {
+    counts,
+    activeReactions,
+    saved: dream.bookmarks.some((bookmark) => bookmark.userId === currentUserId),
+  };
+}
+
+export default async function DreamDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const user = await getCurrentUser();
+  const dream = await getDreamById(id, user);
+  if (!dream) notFound();
+
+  await getPrisma().dream.update({
+    where: { id: dream.id },
+    data: { viewCount: { increment: 1 } },
+  });
+
+  const summary = reactionSummary(dream, user?.id);
+
+  return (
+    <div className="space-y-6">
+      <Card className="overflow-hidden">
+        {dream.imageUrl ? (
+          <div className="relative aspect-[16/7]">
+            <Image
+              src={dream.imageUrl}
+              alt=""
+              fill
+              sizes="(max-width: 1024px) 100vw, 900px"
+              className="object-cover"
+              priority
+            />
+          </div>
+        ) : null}
+        <article className="space-y-5 p-5 sm:p-6">
+          <div className="flex items-start gap-3">
+            <Link href={profilePath(dream.author.username)} className="focus-ring rounded-full">
+              <Avatar
+                src={dream.author.avatarUrl}
+                name={dream.author.displayName}
+                className="size-12"
+              />
+            </Link>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href={profilePath(dream.author.username)}
+                  className="font-semibold hover:text-primary"
+                >
+                  {dream.author.displayName}
+                </Link>
+                <span className="text-sm text-muted-foreground">
+                  @{dream.author.username}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {timeAgo(dream.createdAt)}
+                </span>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Badge>{dream.category.name}</Badge>
+                <Badge>{MOOD_LABELS[dream.mood]}</Badge>
+                <Badge>{dream.visibility.toLowerCase()}</Badge>
+              </div>
+              {dream.authorId === user?.id ? (
+                <div className="mt-3">
+                  <DreamOwnerControls
+                    dreamId={dream.id}
+                    initialVisibility={dream.visibility}
+                    afterDeleteHref={profilePath(dream.author.username)}
+                  />
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div>
+            <h1 className="text-3xl font-semibold tracking-normal">
+              {dream.title}
+            </h1>
+            <p className="mt-4 whitespace-pre-wrap text-base leading-8 text-muted-foreground">
+              {dream.description}
+            </p>
+          </div>
+
+          {dream.tags.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {dream.tags.map((tag) => (
+                <Link
+                  key={tag}
+                  href={`/explore?tag=${encodeURIComponent(tag)}`}
+                  className="focus-ring rounded-md text-sm font-medium text-primary hover:underline"
+                >
+                  #{tag}
+                </Link>
+              ))}
+            </div>
+          ) : null}
+
+          <ReactionBar
+            dreamId={dream.id}
+            counts={summary.counts}
+            activeReactions={summary.activeReactions}
+            saved={summary.saved}
+            commentCount={dream.commentCount}
+            shareCount={dream.shareCount}
+          />
+        </article>
+      </Card>
+
+      <CommentSection
+        dreamId={dream.id}
+        comments={dream.comments}
+        signedIn={Boolean(user)}
+      />
+    </div>
+  );
+}
