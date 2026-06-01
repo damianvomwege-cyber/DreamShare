@@ -128,11 +128,10 @@ Authenticated clients can request signed upload parameters from `POST /api/uploa
 1. Create a Vercel project from this repo.
 2. Add a PostgreSQL database and set `DATABASE_URL`.
 3. Set `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `NEXT_PUBLIC_APP_URL`, and Cloudinary vars.
-4. Deploy.
-5. Run migrations from a trusted shell:
+4. Deploy. Vercel runs `npm run vercel-build`, which applies Prisma migrations before building.
+5. Seed optional first-launch data from a trusted shell if needed:
 
 ```bash
-npm run db:deploy
 npm run db:seed
 ```
 
