@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 
 const variants = {
   primary:
-    "bg-primary text-primary-foreground hover:brightness-105 active:brightness-95",
+    "bg-[linear-gradient(135deg,var(--primary),color-mix(in_srgb,var(--primary),#0f766e_26%))] text-primary-foreground shadow-sm shadow-cyan-950/15 hover:brightness-105 active:brightness-95",
   secondary:
-    "border bg-card text-card-foreground hover:bg-muted/70 active:bg-muted",
+    "border bg-card/80 text-card-foreground shadow-sm shadow-slate-950/5 hover:bg-muted/70 active:bg-muted",
   ghost: "text-foreground hover:bg-muted/70 active:bg-muted",
   danger:
     "bg-destructive text-white hover:brightness-105 active:brightness-95",

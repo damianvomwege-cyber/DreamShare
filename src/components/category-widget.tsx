@@ -5,8 +5,8 @@ import type { Category } from "@/generated/prisma/client";
 
 export function CategoryWidget({ categories }: { categories: Category[] }) {
   return (
-    <Card>
-      <CardHeader>
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b bg-background/42">
         <CardTitle>Dream Categories</CardTitle>
       </CardHeader>
       <CardContent>
@@ -15,11 +15,11 @@ export function CategoryWidget({ categories }: { categories: Category[] }) {
             <Link
               key={category.id}
               href={`/explore?category=${category.slug}`}
-              className="focus-ring flex items-center justify-between rounded-lg border bg-background px-3 py-2 text-sm transition hover:bg-muted"
+              className="focus-ring flex items-center justify-between rounded-lg border bg-background/68 px-3 py-2 text-sm transition hover:border-primary/35 hover:bg-muted/70"
             >
               <span className="flex items-center gap-2">
                 <span
-                  className="size-2.5 rounded-full"
+                  className="size-2.5 rounded-full shadow-[0_0_0_4px_rgba(8,145,178,0.08)]"
                   style={{ backgroundColor: category.color }}
                   aria-hidden="true"
                 />

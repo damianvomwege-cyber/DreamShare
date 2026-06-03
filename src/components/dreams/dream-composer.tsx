@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Send } from "lucide-react";
+import { CloudMoon, Loader2, Send } from "lucide-react";
 import { useActionState } from "react";
 
 import { createDreamAction, type DreamActionState } from "@/app/actions/dreams";
@@ -25,12 +25,19 @@ export function DreamComposer({
   );
 
   return (
-    <Card id="compose">
-      <CardHeader>
-        <CardTitle>What did you dream?</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Capture the details before they fade.
-        </p>
+    <Card id="compose" className="premium-border overflow-hidden">
+      <CardHeader className="border-b bg-background/42">
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary">
+            <CloudMoon className="size-5" aria-hidden="true" />
+          </span>
+          <div>
+            <CardTitle>What did you dream?</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Capture the details before they fade.
+            </p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {signedIn ? (
@@ -60,6 +67,7 @@ export function DreamComposer({
                 name="description"
                 required
                 maxLength={6000}
+                className="min-h-40"
                 placeholder="Write what happened, how it felt, and what you remember most."
               />
             </Field>
@@ -95,7 +103,7 @@ export function DreamComposer({
             <Field label="Tags" hint="Separate tags with commas.">
               <Input name="tags" placeholder="ocean, train, blue light" />
             </Field>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
               {isPending ? (
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />
               ) : (

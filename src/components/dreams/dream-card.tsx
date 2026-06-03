@@ -44,7 +44,14 @@ export function DreamCard({
   const isOwner = dream.author.id === currentUserId;
 
   return (
-    <Card className="overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md">
+    <Card className="premium-border group overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--elevated-shadow)]">
+      <div
+        className="h-1 w-full"
+        style={{
+          background: `linear-gradient(90deg, ${dream.category.color}, var(--primary), var(--accent))`,
+        }}
+        aria-hidden="true"
+      />
       {dream.imageUrl ? (
         <Link href={`/dream/${dream.id}`} className="relative block aspect-[16/7]">
           <Image
@@ -52,7 +59,11 @@ export function DreamCard({
             alt=""
             fill
             sizes="(max-width: 768px) 100vw, 760px"
-            className="object-cover"
+            className="object-cover transition duration-500 group-hover:scale-[1.02]"
+          />
+          <span
+            className="absolute inset-0 bg-gradient-to-t from-slate-950/30 via-transparent to-transparent"
+            aria-hidden="true"
           />
         </Link>
       ) : null}
@@ -63,7 +74,7 @@ export function DreamCard({
             <Avatar
               src={dream.author.avatarUrl}
               name={dream.author.displayName}
-              className="size-11"
+              className="size-11 ring-2 ring-background"
             />
           </Link>
           <div className="min-w-0 flex-1">
@@ -107,7 +118,7 @@ export function DreamCard({
 
         <div>
           <Link href={`/dream/${dream.id}`} className="focus-ring rounded">
-            <h2 className="text-xl font-semibold tracking-normal text-foreground">
+            <h2 className="text-xl font-semibold tracking-normal text-foreground transition group-hover:text-primary">
               {dream.title}
             </h2>
           </Link>
@@ -122,7 +133,7 @@ export function DreamCard({
               <Link
                 key={tag}
                 href={`/explore?tag=${encodeURIComponent(tag)}`}
-                className="focus-ring rounded-md text-xs font-medium text-primary hover:underline"
+                className="focus-ring rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary transition hover:bg-primary/15"
               >
                 #{tag}
               </Link>

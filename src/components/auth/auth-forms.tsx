@@ -85,8 +85,8 @@ export function LoginForm() {
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="premium-border overflow-hidden">
+      <CardHeader className="border-b bg-background/42">
         <CardTitle>Log in to DreamShare</CardTitle>
         <p className="text-sm text-muted-foreground">
           Continue sharing, saving, and following dreams.
@@ -157,8 +157,8 @@ export function RegisterForm() {
   const [state, action, isPending] = useActionState(registerAction, initialState);
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="premium-border overflow-hidden">
+      <CardHeader className="border-b bg-background/42">
         <CardTitle>Create your DreamShare account</CardTitle>
         <p className="text-sm text-muted-foreground">
           Pick a username that other dreamers can follow.
@@ -200,8 +200,8 @@ export function ForgotPasswordForm() {
   );
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="premium-border overflow-hidden">
+      <CardHeader className="border-b bg-background/42">
         <CardTitle>Reset your password</CardTitle>
         <p className="text-sm text-muted-foreground">
           Enter your email and DreamShare will generate a reset token.
@@ -230,8 +230,8 @@ export function ResetPasswordForm({ token }: { token?: string }) {
   );
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="premium-border overflow-hidden">
+      <CardHeader className="border-b bg-background/42">
         <CardTitle>Choose a new password</CardTitle>
       </CardHeader>
       <CardContent>
@@ -256,8 +256,8 @@ export function SetupOwnerForm() {
   );
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="premium-border overflow-hidden">
+      <CardHeader className="border-b bg-background/42">
         <CardTitle>Secure first-launch setup</CardTitle>
         <p className="text-sm text-muted-foreground">
           Create the first Owner account. This page is disabled after setup.

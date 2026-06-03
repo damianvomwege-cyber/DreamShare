@@ -14,7 +14,7 @@ export function Avatar({
   return (
     <div
       className={cn(
-        "relative grid shrink-0 place-items-center overflow-hidden rounded-full border bg-muted text-sm font-semibold text-muted-foreground",
+        "relative grid shrink-0 place-items-center overflow-hidden rounded-full border bg-muted text-sm font-semibold text-muted-foreground shadow-sm shadow-slate-950/10",
         className,
       )}
       aria-label={name}

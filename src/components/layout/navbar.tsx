@@ -31,13 +31,13 @@ export function Navbar({ user }: { user: User }) {
   const isStaff = user && ROLE_WEIGHT[user.role] >= ROLE_WEIGHT.MODERATOR;
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/88 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b bg-background/78 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/64">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
           className="focus-ring flex items-center gap-2 rounded-lg text-lg font-bold tracking-normal"
         >
-          <span className="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground">
+          <span className="grid size-9 place-items-center rounded-lg bg-[linear-gradient(135deg,var(--primary),var(--accent))] text-primary-foreground shadow-lg shadow-cyan-950/15">
             D
           </span>
           <span>{APP_NAME}</span>
@@ -48,7 +48,7 @@ export function Navbar({ user }: { user: User }) {
             <Link
               key={item.href}
               href={item.href}
-              className="focus-ring inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              className="focus-ring inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted/80 hover:text-foreground"
             >
               <item.icon className="size-4" aria-hidden="true" />
               {item.label}
@@ -58,7 +58,7 @@ export function Navbar({ user }: { user: User }) {
 
         <Link
           href="/explore"
-          className="focus-ring ml-auto hidden h-10 w-full max-w-sm items-center gap-2 rounded-lg border bg-card px-3 text-sm text-muted-foreground md:flex"
+          className="focus-ring ml-auto hidden h-10 w-full max-w-sm items-center gap-2 rounded-lg border bg-card/78 px-3 text-sm text-muted-foreground shadow-sm shadow-slate-950/5 transition hover:border-primary/40 hover:text-foreground md:flex"
         >
           <Search className="size-4" aria-hidden="true" />
           Search dreams, tags, users

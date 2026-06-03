@@ -1,6 +1,6 @@
 import { subDays } from "date-fns";
 
-import type { Prisma, Role } from "@/generated/prisma/client";
+import type { Category, Prisma, Role } from "@/generated/prisma/client";
 import { DREAM_CATEGORIES, ROLE_WEIGHT } from "@/lib/constants";
 import { getPrisma } from "@/lib/prisma";
 
@@ -39,25 +39,52 @@ export type DreamCardData = Prisma.DreamGetPayload<{
   include: typeof dreamCardInclude;
 }>;
 
+const isDevelopment = process.env.NODE_ENV === "development";
+
+const fallbackCategories: Category[] = DREAM_CATEGORIES.map((category, index) => ({
+  id: `local-${category.slug}`,
+  name: category.name,
+  slug: category.slug,
+  description: category.description,
+  color: category.color,
+  icon: category.icon,
+  createdAt: new Date(0 + index),
+  updatedAt: new Date(0 + index),
+}));
+
+function handleDevelopmentFallback(error: unknown, label: string) {
+  if (!isDevelopment) throw error;
+
+  console.warn(
+    `[dreamshare:${label}] database unavailable; rendering local preview data.`,
+    error,
+  );
+}
+
 export async function getCategories() {
-  const prisma = getPrisma();
-  const count = await prisma.category.count();
+  try {
+    const prisma = getPrisma();
+    const count = await prisma.category.count();
 
-  if (count === 0) {
-    await prisma.$transaction(
-      DREAM_CATEGORIES.map((category) =>
-        prisma.category.upsert({
-          where: { slug: category.slug },
-          update: category,
-          create: category,
-        }),
-      ),
-    );
+    if (count === 0) {
+      await prisma.$transaction(
+        DREAM_CATEGORIES.map((category) =>
+          prisma.category.upsert({
+            where: { slug: category.slug },
+            update: category,
+            create: category,
+          }),
+        ),
+      );
+    }
+
+    return getPrisma().category.findMany({
+      orderBy: { name: "asc" },
+    });
+  } catch (error) {
+    handleDevelopmentFallback(error, "categories");
+    return fallbackCategories;
   }
-
-  return getPrisma().category.findMany({
-    orderBy: { name: "asc" },
-  });
 }
 
 export async function getDreamFeed(input: {
@@ -101,32 +128,42 @@ export async function getDreamFeed(input: {
           ]
         : [{ createdAt: "desc" }];
 
-  return getPrisma().dream.findMany({
-    where,
-    include: dreamCardInclude,
-    orderBy,
-    take: input.take ?? 24,
-  });
+  try {
+    return await getPrisma().dream.findMany({
+      where,
+      include: dreamCardInclude,
+      orderBy,
+      take: input.take ?? 24,
+    });
+  } catch (error) {
+    handleDevelopmentFallback(error, "dream-feed");
+    return [];
+  }
 }
 
 export async function getTrendingDreams(take = 6) {
   const since = subDays(new Date(), 7);
 
-  return getPrisma().dream.findMany({
-    where: {
-      status: "PUBLISHED",
-      visibility: "PUBLIC",
-      createdAt: { gte: since },
-    },
-    include: dreamCardInclude,
-    orderBy: [
-      { likeCount: "desc" },
-      { commentCount: "desc" },
-      { shareCount: "desc" },
-      { viewCount: "desc" },
-    ],
-    take,
-  });
+  try {
+    return await getPrisma().dream.findMany({
+      where: {
+        status: "PUBLISHED",
+        visibility: "PUBLIC",
+        createdAt: { gte: since },
+      },
+      include: dreamCardInclude,
+      orderBy: [
+        { likeCount: "desc" },
+        { commentCount: "desc" },
+        { shareCount: "desc" },
+        { viewCount: "desc" },
+      ],
+      take,
+    });
+  } catch (error) {
+    handleDevelopmentFallback(error, "trending-dreams");
+    return [];
+  }
 }
 
 type DreamViewer = {
@@ -158,162 +195,182 @@ async function canViewDream(
 }
 
 export async function getDreamById(id: string, viewer?: DreamViewer | null) {
-  const dream = await getPrisma().dream.findFirst({
-    where: { id, status: "PUBLISHED" },
-    include: {
-      ...dreamCardInclude,
-      comments: {
-        where: { deletedAt: null },
-        include: {
-          author: {
-            select: {
-              id: true,
-              username: true,
-              displayName: true,
-              avatarUrl: true,
-              role: true,
-            },
-          },
-          replies: {
-            where: { deletedAt: null },
-            include: {
-              author: {
-                select: {
-                  id: true,
-                  username: true,
-                  displayName: true,
-                  avatarUrl: true,
-                  role: true,
-                },
+  try {
+    const dream = await getPrisma().dream.findFirst({
+      where: { id, status: "PUBLISHED" },
+      include: {
+        ...dreamCardInclude,
+        comments: {
+          where: { deletedAt: null },
+          include: {
+            author: {
+              select: {
+                id: true,
+                username: true,
+                displayName: true,
+                avatarUrl: true,
+                role: true,
               },
             },
-            orderBy: { createdAt: "asc" },
+            replies: {
+              where: { deletedAt: null },
+              include: {
+                author: {
+                  select: {
+                    id: true,
+                    username: true,
+                    displayName: true,
+                    avatarUrl: true,
+                    role: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" },
+            },
           },
+          orderBy: { createdAt: "asc" },
         },
-        orderBy: { createdAt: "asc" },
       },
-    },
-  });
+    });
 
-  if (!dream) return null;
-  if (!(await canViewDream(dream, viewer))) return null;
+    if (!dream) return null;
+    if (!(await canViewDream(dream, viewer))) return null;
 
-  return dream;
+    return dream;
+  } catch (error) {
+    handleDevelopmentFallback(error, "dream-detail");
+    return null;
+  }
 }
 
 export async function getProfile(username: string, viewerId?: string) {
-  const prisma = getPrisma();
-  const profile = await prisma.user.findUnique({
-    where: { username },
-    select: {
-      id: true,
-      username: true,
-      displayName: true,
-      bio: true,
-      avatarUrl: true,
-      bannerUrl: true,
-      role: true,
-      status: true,
-      privateProfile: true,
-      showSavedDreams: true,
-      createdAt: true,
-      _count: {
-        select: {
-          dreams: true,
-          followers: true,
-          following: true,
-          bookmarks: true,
+  try {
+    const prisma = getPrisma();
+    const profile = await prisma.user.findUnique({
+      where: { username },
+      select: {
+        id: true,
+        username: true,
+        displayName: true,
+        bio: true,
+        avatarUrl: true,
+        bannerUrl: true,
+        role: true,
+        status: true,
+        privateProfile: true,
+        showSavedDreams: true,
+        createdAt: true,
+        _count: {
+          select: {
+            dreams: true,
+            followers: true,
+            following: true,
+            bookmarks: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!profile) return null;
+    if (!profile) return null;
 
-  const isOwner = viewerId === profile.id;
-  const followsProfile =
-    viewerId && !isOwner
-      ? Boolean(
-          await prisma.follow.findUnique({
-            where: {
-              followerId_followingId: {
-                followerId: viewerId,
-                followingId: profile.id,
+    const isOwner = viewerId === profile.id;
+    const followsProfile =
+      viewerId && !isOwner
+        ? Boolean(
+            await prisma.follow.findUnique({
+              where: {
+                followerId_followingId: {
+                  followerId: viewerId,
+                  followingId: profile.id,
+                },
               },
-            },
-            select: { id: true },
-          }),
-        )
-      : false;
+              select: { id: true },
+            }),
+          )
+        : false;
 
-  const dreams = await prisma.dream.findMany({
-    where: {
-      authorId: profile.id,
-      status: "PUBLISHED",
-      ...(isOwner
-        ? {}
-        : followsProfile
-          ? { visibility: { in: ["PUBLIC", "FOLLOWERS"] } }
-          : { visibility: "PUBLIC" }),
-    },
-    include: dreamCardInclude,
-    orderBy: { createdAt: "desc" },
-    take: 12,
-  });
+    const dreams = await prisma.dream.findMany({
+      where: {
+        authorId: profile.id,
+        status: "PUBLISHED",
+        ...(isOwner
+          ? {}
+          : followsProfile
+            ? { visibility: { in: ["PUBLIC", "FOLLOWERS"] } }
+            : { visibility: "PUBLIC" }),
+      },
+      include: dreamCardInclude,
+      orderBy: { createdAt: "desc" },
+      take: 12,
+    });
 
-  return { ...profile, dreams };
+    return { ...profile, dreams };
+  } catch (error) {
+    handleDevelopmentFallback(error, "profile");
+    return null;
+  }
 }
 
 export async function getSavedDreams(userId: string) {
-  return getPrisma().bookmark.findMany({
-    where: {
-      userId,
-      dream: {
-        status: "PUBLISHED",
-        OR: [
-          { visibility: "PUBLIC" },
-          { authorId: userId },
-          {
-            visibility: "FOLLOWERS",
-            author: {
-              followers: {
-                some: { followerId: userId },
+  try {
+    return await getPrisma().bookmark.findMany({
+      where: {
+        userId,
+        dream: {
+          status: "PUBLISHED",
+          OR: [
+            { visibility: "PUBLIC" },
+            { authorId: userId },
+            {
+              visibility: "FOLLOWERS",
+              author: {
+                followers: {
+                  some: { followerId: userId },
+                },
               },
             },
-          },
-        ],
+          ],
+        },
       },
-    },
-    include: {
-      dream: {
-        include: dreamCardInclude,
+      include: {
+        dream: {
+          include: dreamCardInclude,
+        },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    handleDevelopmentFallback(error, "saved-dreams");
+    return [];
+  }
 }
 
 export async function getNotifications(userId: string) {
-  return getPrisma().notification.findMany({
-    where: { recipientId: userId },
-    include: {
-      actor: {
-        select: {
-          username: true,
-          displayName: true,
-          avatarUrl: true,
+  try {
+    return await getPrisma().notification.findMany({
+      where: { recipientId: userId },
+      include: {
+        actor: {
+          select: {
+            username: true,
+            displayName: true,
+            avatarUrl: true,
+          },
+        },
+        dream: {
+          select: {
+            id: true,
+            title: true,
+          },
         },
       },
-      dream: {
-        select: {
-          id: true,
-          title: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 50,
-  });
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
+  } catch (error) {
+    handleDevelopmentFallback(error, "notifications");
+    return [];
+  }
 }
 
 export async function getAdminStats() {
