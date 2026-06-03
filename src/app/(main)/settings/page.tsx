@@ -8,6 +8,7 @@ import {
 } from "@/components/profiles/settings-forms";
 import { requireUser } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
+import { absoluteUrl } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ export default async function SettingsPage() {
   const user = await getPrisma().user.findUniqueOrThrow({
     where: { id: sessionUser.id },
     select: {
+      username: true,
       displayName: true,
       bio: true,
       avatarUrl: true,
@@ -41,7 +43,7 @@ export default async function SettingsPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <ProfileSettingsForm user={user} />
+        <ProfileSettingsForm appUrl={absoluteUrl("/")} user={user} />
         <PrivacySettingsForm user={user} />
         <SecuritySettingsCard />
         <NotificationSettingsForm user={user} />

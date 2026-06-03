@@ -13,6 +13,7 @@ import {
   verifyPassword,
   writeAdminLog,
 } from "@/lib/security";
+import { normalizeUsername } from "@/lib/utils";
 import { loginSchema } from "@/lib/validators";
 
 function requestHeader(
@@ -44,6 +45,7 @@ export const authOptions: NextAuthOptions = {
 
         const identifier = parsed.data.identifier.trim();
         const normalizedIdentifier = identifier.toLowerCase();
+        const usernameIdentifier = normalizeUsername(identifier);
         const ipAddress =
           requestHeader(req?.headers, "x-forwarded-for")?.split(",")[0] ||
           requestHeader(req?.headers, "x-real-ip") ||
@@ -58,7 +60,7 @@ export const authOptions: NextAuthOptions = {
 
         const user = await getPrisma().user.findFirst({
           where: {
-            OR: [{ email: normalizedIdentifier }, { username: identifier }],
+            OR: [{ email: normalizedIdentifier }, { username: usernameIdentifier }],
           },
         });
 
@@ -108,17 +110,34 @@ export const authOptions: NextAuthOptions = {
         token.displayName = user.displayName;
         token.role = user.role;
         token.status = user.status;
+        token.picture = user.image;
       }
 
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
+        const latestUser = token.id
+          ? await getPrisma().user
+              .findUnique({
+                where: { id: token.id },
+                select: {
+                  username: true,
+                  displayName: true,
+                  avatarUrl: true,
+                  role: true,
+                  status: true,
+                },
+              })
+              .catch(() => null)
+          : null;
+
         session.user.id = token.id;
-        session.user.username = token.username;
-        session.user.displayName = token.displayName;
-        session.user.role = token.role;
-        session.user.status = token.status;
+        session.user.username = latestUser?.username ?? token.username;
+        session.user.displayName = latestUser?.displayName ?? token.displayName;
+        session.user.image = latestUser?.avatarUrl ?? token.picture ?? null;
+        session.user.role = latestUser?.role ?? token.role;
+        session.user.status = latestUser?.status ?? token.status;
       }
 
       return session;

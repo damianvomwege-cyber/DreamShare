@@ -27,6 +27,7 @@ export async function updateProfileSettingsAction(
 ): Promise<SettingsActionState> {
   const user = await requireUser();
   const parsed = profileSettingsSchema.safeParse({
+    username: value(formData, "username"),
     displayName: sanitizeText(value(formData, "displayName"), 60),
     bio: sanitizeText(value(formData, "bio"), 280),
     avatarUrl: value(formData, "avatarUrl"),
@@ -37,9 +38,28 @@ export async function updateProfileSettingsAction(
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid profile." };
   }
 
-  await getPrisma().user.update({
+  const prisma = getPrisma();
+  const currentUser = await prisma.user.findUniqueOrThrow({
+    where: { id: user.id },
+    select: { username: true },
+  });
+
+  const aliasTaken = await prisma.user.findFirst({
+    where: {
+      username: parsed.data.username,
+      NOT: { id: user.id },
+    },
+    select: { id: true },
+  });
+
+  if (aliasTaken) {
+    return { ok: false, message: "That channel alias is already taken." };
+  }
+
+  await prisma.user.update({
     where: { id: user.id },
     data: {
+      username: parsed.data.username,
       displayName: parsed.data.displayName,
       bio: parsed.data.bio || null,
       avatarUrl: parsed.data.avatarUrl || null,
@@ -47,7 +67,9 @@ export async function updateProfileSettingsAction(
     },
   });
 
-  revalidatePath(profilePath(user.username));
+  revalidatePath(profilePath(currentUser.username));
+  revalidatePath(profilePath(parsed.data.username));
+  revalidatePath("/settings");
   return { ok: true, message: "Profile updated." };
 }
 

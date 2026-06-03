@@ -3,11 +3,16 @@ import { NextRequest } from "next/server";
 import { jsonOk } from "@/lib/api";
 import { getDreamFeed } from "@/lib/data";
 import { getPrisma } from "@/lib/prisma";
+import { normalizeUsername } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";
+  const usernameQuery = normalizeUsername(q);
+  const usernameTerms = Array.from(
+    new Set([q, usernameQuery].filter((term) => term.length > 0)),
+  );
   const [dreams, users, categories] = await Promise.all([
     getDreamFeed({ q, take: 12 }),
     q
@@ -15,7 +20,9 @@ export async function GET(request: NextRequest) {
           where: {
             status: "ACTIVE",
             OR: [
-              { username: { contains: q, mode: "insensitive" } },
+              ...usernameTerms.map((term) => ({
+                username: { contains: term, mode: "insensitive" as const },
+              })),
               { displayName: { contains: q, mode: "insensitive" } },
             ],
           },

@@ -1,20 +1,23 @@
 import { z } from "zod";
 
 import { DreamMood, DreamVisibility, ReactionType, Role } from "@/generated/prisma/client";
+import { normalizeUsername } from "@/lib/utils";
 
-export const usernameSchema = z
-  .string()
-  .trim()
-  .min(3, "Use at least 3 characters.")
-  .max(24)
-  .regex(
-    /^[a-zA-Z0-9_ ]+$/,
-    "Use letters, numbers, spaces, and underscores only.",
-  )
-  .refine(
-    (username) => (username.match(/ /g)?.length ?? 0) <= 2,
-    "Use at most 2 spaces.",
-  );
+export const usernameSchema = z.preprocess(
+  (value) => (typeof value === "string" ? normalizeUsername(value) : value),
+  z
+    .string()
+    .min(3, "Use at least 3 characters.")
+    .max(24)
+    .regex(
+      /^[a-zA-Z0-9_ ]+$/,
+      "Use letters, numbers, spaces, and underscores only.",
+    )
+    .refine(
+      (username) => (username.match(/ /g)?.length ?? 0) <= 2,
+      "Use at most 2 spaces.",
+    ),
+);
 
 export const passwordSchema = z
   .string()
@@ -83,6 +86,7 @@ export const reactionSchema = z.object({
 });
 
 export const profileSettingsSchema = z.object({
+  username: usernameSchema,
   displayName: z.string().min(2).max(60),
   bio: z.string().max(280).optional().or(z.literal("")),
   avatarUrl: z.url().optional().or(z.literal("")),

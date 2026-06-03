@@ -1,6 +1,7 @@
 import { jsonError, jsonOk } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
+import { normalizeUsername } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ export async function POST(
   if (!user) return jsonError("Unauthorized", 401);
 
   const { username: usernameParam } = await params;
-  const username = decodeURIComponent(usernameParam);
+  const username = normalizeUsername(decodeURIComponent(usernameParam));
   const target = await getPrisma().user.findUnique({
     where: { username },
     select: { id: true },

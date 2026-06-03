@@ -3,6 +3,7 @@ import { subDays } from "date-fns";
 import type { Category, Prisma, Role } from "@/generated/prisma/client";
 import { DREAM_CATEGORIES, ROLE_WEIGHT } from "@/lib/constants";
 import { getPrisma } from "@/lib/prisma";
+import { normalizeUsername } from "@/lib/utils";
 
 export const dreamCardInclude = {
   author: {
@@ -100,11 +101,22 @@ export async function getDreamFeed(input: {
   };
 
   if (input.q) {
+    const usernameQuery = normalizeUsername(input.q);
+    const usernameFilters: Prisma.DreamWhereInput[] = [
+      { author: { username: { contains: input.q, mode: "insensitive" } } },
+    ];
+
+    if (usernameQuery && usernameQuery !== input.q) {
+      usernameFilters.push({
+        author: { username: { contains: usernameQuery, mode: "insensitive" } },
+      });
+    }
+
     where.OR = [
       { title: { contains: input.q, mode: "insensitive" } },
       { description: { contains: input.q, mode: "insensitive" } },
       { tags: { has: input.q.toLowerCase() } },
-      { author: { username: { contains: input.q, mode: "insensitive" } } },
+      ...usernameFilters,
     ];
   }
 

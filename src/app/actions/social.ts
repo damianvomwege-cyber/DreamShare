@@ -4,12 +4,13 @@ import { revalidatePath } from "next/cache";
 
 import { requireUser } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
-import { profilePath } from "@/lib/utils";
+import { normalizeUsername, profilePath } from "@/lib/utils";
 
 export async function toggleFollowAction(username: string) {
   const user = await requireUser();
+  const targetUsername = normalizeUsername(username);
   const target = await getPrisma().user.findUnique({
-    where: { username },
+    where: { username: targetUsername },
     select: { id: true, username: true, displayName: true },
   });
 
@@ -47,7 +48,7 @@ export async function toggleFollowAction(username: string) {
     ]);
   }
 
-  revalidatePath(profilePath(username));
+  revalidatePath(profilePath(targetUsername));
   return { ok: true, following: !existing };
 }
 

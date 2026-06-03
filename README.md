@@ -76,7 +76,7 @@ Regular user registration marks email as verified immediately for local/product 
 - `/` home feed and dream composer
 - `/login`, `/register`, `/forgot-password`, `/reset-password`
 - `/explore`, `/trending`
-- `/profile/[username]`
+- `/channels/@[username]` (legacy `/profile/[username]` redirects here)
 - `/dream/[id]`
 - `/settings`, `/bookmarks`, `/notifications`
 - `/admin`, `/admin/users`, `/admin/dreams`, `/admin/comments`, `/admin/logs`

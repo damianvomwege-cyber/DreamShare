@@ -55,6 +55,25 @@ function PasswordField({
   );
 }
 
+function UsernameField() {
+  return (
+    <Field label="Channel alias" hint="At least 3 characters. Up to 2 spaces allowed.">
+      <div className="focus-within:ring-ring flex h-10 w-full items-center overflow-hidden rounded-lg border bg-background/80 text-sm shadow-inner shadow-slate-950/5 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-background">
+        <span className="grid h-full place-items-center border-r bg-muted/60 px-3 font-mono text-muted-foreground">
+          @
+        </span>
+        <input
+          name="username"
+          required
+          autoComplete="username"
+          className="h-full min-w-0 flex-1 bg-transparent px-3 text-foreground outline-none placeholder:text-muted-foreground"
+          placeholder="example"
+        />
+      </div>
+    </Field>
+  );
+}
+
 function FormMessage({ state }: { state: ActionState }) {
   if (!state.message) return null;
 
@@ -131,7 +150,7 @@ export function LoginForm() {
               {error}
             </div>
           ) : null}
-          <Field label="Email or username">
+          <Field label="Email or @alias">
             <Input name="identifier" required autoComplete="username" />
           </Field>
           <PasswordField />
@@ -170,9 +189,7 @@ export function RegisterForm() {
           <Field label="Display name">
             <Input name="displayName" required autoComplete="name" />
           </Field>
-          <Field label="Username" hint="At least 3 characters. Up to 2 spaces allowed.">
-            <Input name="username" required autoComplete="username" />
-          </Field>
+          <UsernameField />
           <Field label="Email">
             <Input name="email" type="email" required autoComplete="email" />
           </Field>
@@ -269,9 +286,7 @@ export function SetupOwnerForm() {
           <Field label="Display name">
             <Input name="displayName" required defaultValue="DreamShare Owner" />
           </Field>
-          <Field label="Username" hint="At least 3 characters. Up to 2 spaces allowed.">
-            <Input name="username" required autoComplete="username" />
-          </Field>
+          <UsernameField />
           <Field label="Email">
             <Input name="email" type="email" required autoComplete="email" />
           </Field>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2, Save } from "lucide-react";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import {
   updateNotificationSettingsAction,
@@ -9,9 +9,11 @@ import {
   updateProfileSettingsAction,
   type SettingsActionState,
 } from "@/app/actions/settings";
+import { Avatar } from "@/components/ui/avatar";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, Input, Textarea } from "@/components/ui/form";
+import { cn, normalizeUsername, profilePath } from "@/lib/utils";
 
 const initialState: SettingsActionState = { ok: false, message: "" };
 
@@ -24,10 +26,17 @@ function Message({ state }: { state: SettingsActionState }) {
   );
 }
 
+function editableAlias(value: string) {
+  return value.replace(/^\s*@+/, "");
+}
+
 export function ProfileSettingsForm({
+  appUrl,
   user,
 }: {
+  appUrl: string;
   user: {
+    username: string;
     displayName: string;
     bio: string | null;
     avatarUrl: string | null;
@@ -38,6 +47,12 @@ export function ProfileSettingsForm({
     updateProfileSettingsAction,
     initialState,
   );
+  const [displayName, setDisplayName] = useState(user.displayName);
+  const [alias, setAlias] = useState(user.username);
+  const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl ?? "");
+  const host = appUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const previewAlias = normalizeUsername(alias) || "example";
+  const channelUrl = `${host}${profilePath(previewAlias)}`;
 
   return (
     <Card>
@@ -47,14 +62,65 @@ export function ProfileSettingsForm({
       <CardContent>
         <form action={action} className="space-y-4">
           <Message state={state} />
+          <div className="flex items-center gap-4 rounded-lg border bg-muted/30 p-3">
+            <Avatar
+              src={avatarUrl || null}
+              name={displayName || previewAlias}
+              className="size-16 text-lg"
+            />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">{displayName || "Display name"}</p>
+              <p className="truncate font-mono text-xs text-muted-foreground">
+                {channelUrl}
+              </p>
+            </div>
+          </div>
           <Field label="Display name">
-            <Input name="displayName" defaultValue={user.displayName} required />
+            <Input
+              name="displayName"
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              required
+              autoComplete="name"
+            />
+          </Field>
+          <Field
+            label="Channel alias"
+            hint="At least 3 characters. The public link always starts with @."
+          >
+            <div
+              className={cn(
+                "focus-within:ring-ring flex h-10 w-full items-center overflow-hidden rounded-lg border bg-background/80 text-sm shadow-inner shadow-slate-950/5 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-background",
+              )}
+            >
+              <span className="grid h-full place-items-center border-r bg-muted/60 px-3 font-mono text-muted-foreground">
+                @
+              </span>
+              <input
+                name="username"
+                value={alias}
+                onChange={(event) => setAlias(editableAlias(event.target.value))}
+                required
+                autoComplete="username"
+                className="h-full min-w-0 flex-1 bg-transparent px-3 text-foreground outline-none placeholder:text-muted-foreground"
+                placeholder="example"
+              />
+            </div>
+            <p className="break-all font-mono text-xs text-muted-foreground">
+              {channelUrl}
+            </p>
           </Field>
           <Field label="Bio">
             <Textarea name="bio" defaultValue={user.bio ?? ""} maxLength={280} />
           </Field>
-          <Field label="Avatar URL">
-            <Input name="avatarUrl" type="url" defaultValue={user.avatarUrl ?? ""} />
+          <Field label="Profile picture URL">
+            <Input
+              name="avatarUrl"
+              type="url"
+              value={avatarUrl}
+              onChange={(event) => setAvatarUrl(event.target.value)}
+              placeholder="https://..."
+            />
           </Field>
           <Field label="Banner URL">
             <Input name="bannerUrl" type="url" defaultValue={user.bannerUrl ?? ""} />

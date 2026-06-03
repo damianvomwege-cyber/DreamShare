@@ -11,7 +11,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { getCurrentUser } from "@/lib/auth";
 import { getCategories, getDreamFeed } from "@/lib/data";
 import { getPrisma } from "@/lib/prisma";
-import { profilePath } from "@/lib/utils";
+import { normalizeUsername, profilePath } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +31,9 @@ export default async function ExplorePage({
 }) {
   const params = await searchParams;
   const q = params.q?.trim() || undefined;
+  const usernameTerms = q
+    ? Array.from(new Set([q, normalizeUsername(q)].filter((term) => term.length > 0)))
+    : [];
   const [user, categories, dreams, users] = await Promise.all([
     getCurrentUser(),
     getCategories(),
@@ -45,7 +48,9 @@ export default async function ExplorePage({
       ? getPrisma().user.findMany({
           where: {
             OR: [
-              { username: { contains: q, mode: "insensitive" } },
+              ...usernameTerms.map((term) => ({
+                username: { contains: term, mode: "insensitive" as const },
+              })),
               { displayName: { contains: q, mode: "insensitive" } },
             ],
             status: "ACTIVE",

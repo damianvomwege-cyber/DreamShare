@@ -17,8 +17,16 @@ export function timeAgo(date: Date | string) {
   return `${formatDistanceToNowStrict(new Date(date), { addSuffix: true })}`;
 }
 
+export function normalizeUsername(value: string) {
+  return value.trim().replace(/^@+/, "").trim();
+}
+
+export function displayUsername(username: string) {
+  return `@${normalizeUsername(username)}`;
+}
+
 export function profilePath(username: string) {
-  return `/profile/${encodeURIComponent(username)}`;
+  return `/channels/@${encodeURIComponent(normalizeUsername(username))}`;
 }
 
 export function initials(name: string) {
