@@ -39,33 +39,51 @@ export async function updateProfileSettingsAction(
   }
 
   const prisma = getPrisma();
-  const currentUser = await prisma.user.findUniqueOrThrow({
-    where: { id: user.id },
-    select: { username: true },
-  });
+  const currentUser = await prisma.user
+    .findUnique({
+      where: { id: user.id },
+      select: { username: true },
+    })
+    .catch(() => null);
 
-  const aliasTaken = await prisma.user.findFirst({
-    where: {
-      username: parsed.data.username,
-      NOT: { id: user.id },
-    },
-    select: { id: true },
-  });
+  if (!currentUser) {
+    return {
+      ok: false,
+      message: "Account settings could not be loaded. Check the database connection.",
+    };
+  }
+
+  const aliasTaken = await prisma.user
+    .findFirst({
+      where: {
+        username: parsed.data.username,
+        NOT: { id: user.id },
+      },
+      select: { id: true },
+    })
+    .catch(() => null);
 
   if (aliasTaken) {
     return { ok: false, message: "That channel alias is already taken." };
   }
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      username: parsed.data.username,
-      displayName: parsed.data.displayName,
-      bio: parsed.data.bio || null,
-      avatarUrl: parsed.data.avatarUrl || null,
-      bannerUrl: parsed.data.bannerUrl || null,
-    },
-  });
+  try {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        username: parsed.data.username,
+        displayName: parsed.data.displayName,
+        bio: parsed.data.bio || null,
+        avatarUrl: parsed.data.avatarUrl || null,
+        bannerUrl: parsed.data.bannerUrl || null,
+      },
+    });
+  } catch {
+    return {
+      ok: false,
+      message: "Profile could not be saved. Check the database connection.",
+    };
+  }
 
   revalidatePath(profilePath(currentUser.username));
   revalidatePath(profilePath(parsed.data.username));
@@ -85,10 +103,17 @@ export async function updatePrivacySettingsAction(
 
   if (!parsed.success) return { ok: false, message: "Invalid privacy settings." };
 
-  await getPrisma().user.update({
-    where: { id: user.id },
-    data: parsed.data,
-  });
+  try {
+    await getPrisma().user.update({
+      where: { id: user.id },
+      data: parsed.data,
+    });
+  } catch {
+    return {
+      ok: false,
+      message: "Privacy settings could not be saved. Check the database connection.",
+    };
+  }
 
   revalidatePath(profilePath(user.username));
   return { ok: true, message: "Privacy settings updated." };
@@ -108,10 +133,17 @@ export async function updateNotificationSettingsAction(
     return { ok: false, message: "Invalid notification settings." };
   }
 
-  await getPrisma().user.update({
-    where: { id: user.id },
-    data: parsed.data,
-  });
+  try {
+    await getPrisma().user.update({
+      where: { id: user.id },
+      data: parsed.data,
+    });
+  } catch {
+    return {
+      ok: false,
+      message: "Notification settings could not be saved. Check the database connection.",
+    };
+  }
 
   return { ok: true, message: "Notification settings updated." };
 }

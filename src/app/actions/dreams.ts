@@ -27,6 +27,12 @@ function text(formData: FormData, key: string) {
   return String(formData.get(key) ?? "");
 }
 
+function dreamWriteErrorMessage() {
+  return process.env.NODE_ENV === "development"
+    ? "Dreams cannot be posted while the local database is unavailable. Start Postgres and refresh the categories."
+    : "Dream could not be posted. Try again.";
+}
+
 function revalidateDreamSurfaces(dreamId: string, username?: string) {
   revalidatePath("/");
   revalidatePath("/explore");
@@ -60,18 +66,26 @@ export async function createDreamAction(
     return { ok: false, message: spam.reason ?? "This dream looks like spam." };
   }
 
-  await getPrisma().dream.create({
-    data: {
-      title: parsed.data.title,
-      description: parsed.data.description,
-      categoryId: parsed.data.categoryId,
-      mood: parsed.data.mood,
-      visibility: parsed.data.visibility,
-      tags: normalizeTags(parsed.data.tags),
-      imageUrl: parsed.data.imageUrl || null,
-      authorId: user.id,
-    },
-  });
+  if (parsed.data.categoryId.startsWith("local-")) {
+    return { ok: false, message: dreamWriteErrorMessage() };
+  }
+
+  try {
+    await getPrisma().dream.create({
+      data: {
+        title: parsed.data.title,
+        description: parsed.data.description,
+        categoryId: parsed.data.categoryId,
+        mood: parsed.data.mood,
+        visibility: parsed.data.visibility,
+        tags: normalizeTags(parsed.data.tags),
+        imageUrl: parsed.data.imageUrl || null,
+        authorId: user.id,
+      },
+    });
+  } catch {
+    return { ok: false, message: dreamWriteErrorMessage() };
+  }
 
   revalidatePath("/");
   revalidatePath("/explore");

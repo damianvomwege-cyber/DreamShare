@@ -5,26 +5,14 @@ import { DreamModerationControls } from "@/components/admin/admin-controls";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { requireRole } from "@/lib/auth";
-import { getPrisma } from "@/lib/prisma";
+import { getAdminDreams } from "@/lib/data";
 import { timeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDreamsPage() {
   const actor = await requireRole("MODERATOR");
-  const dreams = await getPrisma().dream.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 100,
-    include: {
-      author: {
-        select: {
-          username: true,
-          displayName: true,
-        },
-      },
-      category: true,
-    },
-  });
+  const dreams = await getAdminDreams();
 
   return (
     <AdminShell user={actor}>

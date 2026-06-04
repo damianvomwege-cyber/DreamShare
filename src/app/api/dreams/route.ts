@@ -45,18 +45,28 @@ export async function POST(request: Request) {
   const spam = detectSpam(`${parsed.data.title} ${parsed.data.description}`);
   if (spam.blocked) return jsonError(spam.reason ?? "Spam detected.", 422);
 
-  const dream = await getPrisma().dream.create({
-    data: {
-      title: parsed.data.title,
-      description: parsed.data.description,
-      categoryId: parsed.data.categoryId,
-      mood: parsed.data.mood,
-      visibility: parsed.data.visibility,
-      tags: normalizeTags(parsed.data.tags),
-      imageUrl: parsed.data.imageUrl || null,
-      authorId: user.id,
-    },
-  });
+  if (parsed.data.categoryId.startsWith("local-")) {
+    return jsonError("Database is unavailable; refresh categories after setup.", 503);
+  }
+
+  const dream = await getPrisma().dream
+    .create({
+      data: {
+        title: parsed.data.title,
+        description: parsed.data.description,
+        categoryId: parsed.data.categoryId,
+        mood: parsed.data.mood,
+        visibility: parsed.data.visibility,
+        tags: normalizeTags(parsed.data.tags),
+        imageUrl: parsed.data.imageUrl || null,
+        authorId: user.id,
+      },
+    })
+    .catch(() => null);
+
+  if (!dream) {
+    return jsonError("Dream could not be posted. Check the database connection.", 503);
+  }
 
   return jsonOk({ dream }, 201);
 }

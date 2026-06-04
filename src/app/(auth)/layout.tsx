@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
-import { APP_NAME } from "@/lib/constants";
+import { DreamShareLogo } from "@/components/brand/dreamshare-logo";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -11,10 +11,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           href="/"
           className="focus-ring mx-auto mb-8 flex w-max items-center gap-2 rounded-lg text-lg font-bold"
         >
-          <span className="grid size-9 place-items-center rounded-lg bg-[linear-gradient(135deg,var(--primary),var(--accent))] text-primary-foreground shadow-lg shadow-cyan-950/15">
-            D
-          </span>
-          {APP_NAME}
+          <DreamShareLogo />
         </Link>
         {children}
       </div>

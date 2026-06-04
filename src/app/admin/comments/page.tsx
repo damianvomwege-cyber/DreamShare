@@ -5,31 +5,14 @@ import { CommentModerationControls } from "@/components/admin/admin-controls";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { requireRole } from "@/lib/auth";
-import { getPrisma } from "@/lib/prisma";
+import { getAdminComments } from "@/lib/data";
 import { timeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminCommentsPage() {
   const actor = await requireRole("MODERATOR");
-  const comments = await getPrisma().comment.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 100,
-    include: {
-      author: {
-        select: {
-          username: true,
-          displayName: true,
-        },
-      },
-      dream: {
-        select: {
-          id: true,
-          title: true,
-        },
-      },
-    },
-  });
+  const comments = await getAdminComments();
 
   return (
     <AdminShell user={actor}>

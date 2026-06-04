@@ -9,13 +9,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { Avatar } from "@/components/ui/avatar";
-import { ButtonLink } from "@/components/ui/button";
-import { APP_NAME, ROLE_WEIGHT } from "@/lib/constants";
-import type { getCurrentUser } from "@/lib/auth";
-import { profilePath } from "@/lib/utils";
+import { DreamShareLogo } from "@/components/brand/dreamshare-logo";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { Avatar } from "@/components/ui/avatar";
+import { ButtonLink } from "@/components/ui/button";
+import type { getCurrentUser } from "@/lib/auth";
+import { ROLE_WEIGHT } from "@/lib/constants";
+import { profilePath } from "@/lib/utils";
 
 type User = Awaited<ReturnType<typeof getCurrentUser>>;
 
@@ -37,10 +38,7 @@ export function Navbar({ user }: { user: User }) {
           href="/"
           className="focus-ring flex items-center gap-2 rounded-lg text-lg font-bold tracking-normal"
         >
-          <span className="grid size-9 place-items-center rounded-lg bg-[linear-gradient(135deg,var(--primary),var(--accent))] text-primary-foreground shadow-lg shadow-cyan-950/15">
-            D
-          </span>
-          <span>{APP_NAME}</span>
+          <DreamShareLogo />
         </Link>
 
         <nav className="ml-6 hidden items-center gap-1 lg:flex" aria-label="Primary">

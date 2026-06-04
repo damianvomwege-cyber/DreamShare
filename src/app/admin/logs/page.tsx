@@ -2,25 +2,14 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { requireRole } from "@/lib/auth";
-import { getPrisma } from "@/lib/prisma";
+import { getAdminLogs } from "@/lib/data";
 import { timeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminLogsPage() {
   const actor = await requireRole("ADMIN");
-  const logs = await getPrisma().adminLog.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 150,
-    include: {
-      actor: {
-        select: {
-          username: true,
-          displayName: true,
-        },
-      },
-    },
-  });
+  const logs = await getAdminLogs();
 
   return (
     <AdminShell user={actor}>

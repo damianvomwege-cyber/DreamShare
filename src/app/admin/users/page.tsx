@@ -4,33 +4,14 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { requireRole } from "@/lib/auth";
-import { getPrisma } from "@/lib/prisma";
+import { getAdminUsers } from "@/lib/data";
 import { timeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminUsersPage() {
   const actor = await requireRole("MODERATOR");
-  const users = await getPrisma().user.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 100,
-    select: {
-      id: true,
-      username: true,
-      displayName: true,
-      email: true,
-      avatarUrl: true,
-      role: true,
-      status: true,
-      createdAt: true,
-      _count: {
-        select: {
-          dreams: true,
-          followers: true,
-        },
-      },
-    },
-  });
+  const users = await getAdminUsers();
 
   return (
     <AdminShell user={actor}>

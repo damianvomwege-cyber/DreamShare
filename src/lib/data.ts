@@ -386,72 +386,191 @@ export async function getNotifications(userId: string) {
 }
 
 export async function getAdminStats() {
-  const prisma = getPrisma();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  try {
+    const prisma = getPrisma();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const [
-    totalUsers,
-    totalDreams,
-    totalComments,
-    activeUsers,
-    newUsersToday,
-    dreamsToday,
-    openReports,
-  ] = await Promise.all([
-    prisma.user.count(),
-    prisma.dream.count({ where: { status: { not: "DELETED" } } }),
-    prisma.comment.count({ where: { deletedAt: null } }),
-    prisma.user.count({
-      where: {
-        status: "ACTIVE",
-        lastLoginAt: { gte: subDays(new Date(), 30) },
-      },
-    }),
-    prisma.user.count({ where: { createdAt: { gte: today } } }),
-    prisma.dream.count({ where: { createdAt: { gte: today } } }),
-    prisma.report.count({ where: { status: { in: ["OPEN", "REVIEWING"] } } }),
-  ]);
+    const [
+      totalUsers,
+      totalDreams,
+      totalComments,
+      activeUsers,
+      newUsersToday,
+      dreamsToday,
+      openReports,
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.dream.count({ where: { status: { not: "DELETED" } } }),
+      prisma.comment.count({ where: { deletedAt: null } }),
+      prisma.user.count({
+        where: {
+          status: "ACTIVE",
+          lastLoginAt: { gte: subDays(new Date(), 30) },
+        },
+      }),
+      prisma.user.count({ where: { createdAt: { gte: today } } }),
+      prisma.dream.count({ where: { createdAt: { gte: today } } }),
+      prisma.report.count({ where: { status: { in: ["OPEN", "REVIEWING"] } } }),
+    ]);
 
-  return {
-    totalUsers,
-    totalDreams,
-    totalComments,
-    activeUsers,
-    newUsersToday,
-    dreamsToday,
-    openReports,
-  };
+    return {
+      totalUsers,
+      totalDreams,
+      totalComments,
+      activeUsers,
+      newUsersToday,
+      dreamsToday,
+      openReports,
+    };
+  } catch (error) {
+    handleDevelopmentFallback(error, "admin-stats");
+
+    return {
+      totalUsers: 0,
+      totalDreams: 0,
+      totalComments: 0,
+      activeUsers: 0,
+      newUsersToday: 0,
+      dreamsToday: 0,
+      openReports: 0,
+    };
+  }
 }
 
 export async function getAdminAnalytics() {
-  const prisma = getPrisma();
   const since = subDays(new Date(), 13);
-  const [users, dreams, comments] = await Promise.all([
-    prisma.user.findMany({
-      where: { createdAt: { gte: since } },
-      select: { createdAt: true },
-    }),
-    prisma.dream.findMany({
-      where: { createdAt: { gte: since } },
-      select: { createdAt: true },
-    }),
-    prisma.comment.findMany({
-      where: { createdAt: { gte: since } },
-      select: { createdAt: true },
-    }),
-  ]);
-
   const rows = Array.from({ length: 14 }, (_, index) => {
     const date = subDays(new Date(), 13 - index);
     const key = date.toISOString().slice(0, 10);
     return { date: key, users: 0, dreams: 0, comments: 0 };
   });
 
-  const byDate = new Map(rows.map((row) => [row.date, row]));
-  for (const user of users) byDate.get(user.createdAt.toISOString().slice(0, 10))!.users += 1;
-  for (const dream of dreams) byDate.get(dream.createdAt.toISOString().slice(0, 10))!.dreams += 1;
-  for (const comment of comments) byDate.get(comment.createdAt.toISOString().slice(0, 10))!.comments += 1;
+  try {
+    const prisma = getPrisma();
+    const [users, dreams, comments] = await Promise.all([
+      prisma.user.findMany({
+        where: { createdAt: { gte: since } },
+        select: { createdAt: true },
+      }),
+      prisma.dream.findMany({
+        where: { createdAt: { gte: since } },
+        select: { createdAt: true },
+      }),
+      prisma.comment.findMany({
+        where: { createdAt: { gte: since } },
+        select: { createdAt: true },
+      }),
+    ]);
+
+    const byDate = new Map(rows.map((row) => [row.date, row]));
+    for (const user of users) {
+      byDate.get(user.createdAt.toISOString().slice(0, 10))!.users += 1;
+    }
+    for (const dream of dreams) {
+      byDate.get(dream.createdAt.toISOString().slice(0, 10))!.dreams += 1;
+    }
+    for (const comment of comments) {
+      byDate.get(comment.createdAt.toISOString().slice(0, 10))!.comments += 1;
+    }
+  } catch (error) {
+    handleDevelopmentFallback(error, "admin-analytics");
+  }
 
   return rows;
+}
+
+export async function getAdminUsers() {
+  try {
+    return await getPrisma().user.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      select: {
+        id: true,
+        username: true,
+        displayName: true,
+        email: true,
+        avatarUrl: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        _count: {
+          select: {
+            dreams: true,
+            followers: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    handleDevelopmentFallback(error, "admin-users");
+    return [];
+  }
+}
+
+export async function getAdminDreams() {
+  try {
+    return await getPrisma().dream.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      include: {
+        author: {
+          select: {
+            username: true,
+            displayName: true,
+          },
+        },
+        category: true,
+      },
+    });
+  } catch (error) {
+    handleDevelopmentFallback(error, "admin-dreams");
+    return [];
+  }
+}
+
+export async function getAdminComments() {
+  try {
+    return await getPrisma().comment.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      include: {
+        author: {
+          select: {
+            username: true,
+            displayName: true,
+          },
+        },
+        dream: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    handleDevelopmentFallback(error, "admin-comments");
+    return [];
+  }
+}
+
+export async function getAdminLogs() {
+  try {
+    return await getPrisma().adminLog.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 150,
+      include: {
+        actor: {
+          select: {
+            username: true,
+            displayName: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    handleDevelopmentFallback(error, "admin-logs");
+    return [];
+  }
 }

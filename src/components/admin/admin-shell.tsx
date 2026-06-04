@@ -3,13 +3,14 @@ import {
   Gauge,
   Home,
   MessageSquare,
+  MonitorCheck,
   ScrollText,
-  Shield,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { DreamShareLogo } from "@/components/brand/dreamshare-logo";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ const adminNav = [
   { href: "/admin/dreams", label: "Dreams", icon: FileText },
   { href: "/admin/comments", label: "Comments", icon: MessageSquare },
   { href: "/admin/logs", label: "Logs", icon: ScrollText },
+  { href: "/admin/test", label: "Test", icon: MonitorCheck },
 ];
 
 export function AdminShell({
@@ -37,10 +39,7 @@ export function AdminShell({
       <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
           <Link href="/admin" className="focus-ring flex items-center gap-2 rounded-lg font-semibold">
-            <span className="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground">
-              <Shield className="size-5" aria-hidden="true" />
-            </span>
-            DreamShare Admin
+            <DreamShareLogo label="DreamShare Admin" />
           </Link>
           <Badge className="ml-auto">{user.role}</Badge>
           <ThemeToggle />

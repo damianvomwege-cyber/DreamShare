@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Lock } from "lucide-react";
+import { Lock, UserRound } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 
 import { DreamCard } from "@/components/dreams/dream-card";
@@ -12,6 +12,8 @@ import { displayUsername, normalizeUsername, profilePath } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+type Profile = NonNullable<Awaited<ReturnType<typeof getProfile>>>;
+
 function decodeRouteParam(value: string) {
   try {
     return decodeURIComponent(value);
@@ -22,6 +24,64 @@ function decodeRouteParam(value: string) {
 
 function usernameFromHandle(handle: string) {
   return normalizeUsername(decodeRouteParam(handle));
+}
+
+function usernamesMatch(left: string, right: string) {
+  return normalizeUsername(left).toLowerCase() === normalizeUsername(right).toLowerCase();
+}
+
+function getDevelopmentProfileFallback(
+  username: string,
+  user: Awaited<ReturnType<typeof getCurrentUser>>,
+): Profile | null {
+  if (process.env.NODE_ENV !== "development" || !user || !usernamesMatch(user.username, username)) {
+    return null;
+  }
+
+  return {
+    id: user.id,
+    username: normalizeUsername(user.username),
+    displayName: user.displayName,
+    bio: null,
+    avatarUrl: user.image ?? null,
+    bannerUrl: null,
+    role: user.role,
+    status: user.status,
+    privateProfile: false,
+    showSavedDreams: false,
+    createdAt: new Date(),
+    _count: {
+      dreams: 0,
+      followers: 0,
+      following: 0,
+      bookmarks: 0,
+    },
+    dreams: [],
+  };
+}
+
+async function getFollowingState(userId: string, profileId: string) {
+  try {
+    return Boolean(
+      await getPrisma().follow.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId: userId,
+            followingId: profileId,
+          },
+        },
+      }),
+    );
+  } catch (error) {
+    if (process.env.NODE_ENV !== "development") throw error;
+
+    console.warn(
+      "[dreamshare:profile-follow-state] database unavailable; rendering not-following state.",
+      error,
+    );
+
+    return false;
+  }
 }
 
 export async function generateMetadata({
@@ -48,21 +108,24 @@ export default async function ChannelPage({
   if (!handle.startsWith("@")) redirect(profilePath(username));
 
   const user = await getCurrentUser();
-  const profile = await getProfile(username, user?.id);
+  const profile = (await getProfile(username, user?.id)) ?? getDevelopmentProfileFallback(username, user);
 
-  if (!profile || profile.status === "BANNED") notFound();
+  if (!profile) {
+    if (process.env.NODE_ENV !== "development") notFound();
+
+    return (
+      <EmptyState
+        icon={UserRound}
+        title="Profile unavailable"
+        description="The local database could not return this profile. Check the database connection or use your own channel link."
+      />
+    );
+  }
+
+  if (profile.status === "BANNED") notFound();
 
   const following = user
-    ? Boolean(
-        await getPrisma().follow.findUnique({
-          where: {
-            followerId_followingId: {
-              followerId: user.id,
-              followingId: profile.id,
-            },
-          },
-        }),
-      )
+    ? await getFollowingState(user.id, profile.id)
     : false;
 
   const canViewDreams =

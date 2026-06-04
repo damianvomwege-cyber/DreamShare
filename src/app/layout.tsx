@@ -23,6 +23,11 @@ export const metadata: Metadata = {
   },
   description:
     "DreamShare is a social platform for posting dreams, reacting to dream stories, following dreamers, and exploring trending sleep worlds.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
   keywords: [
     "dream journal",
     "dream sharing",
