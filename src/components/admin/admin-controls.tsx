@@ -1,6 +1,7 @@
 "use client";
 
 import { Ban, ShieldAlert, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useTransition } from "react";
 
@@ -28,6 +29,7 @@ function ConfirmButton({
   variant?: "secondary" | "danger";
   icon?: ReactNode;
 }) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -38,7 +40,10 @@ function ConfirmButton({
       disabled={isPending}
       onClick={() => {
         if (!window.confirm(confirm)) return;
-        startTransition(() => void action());
+        startTransition(async () => {
+          await action();
+          router.refresh();
+        });
       }}
     >
       {icon}
@@ -99,7 +104,7 @@ export function DreamModerationControls({ dreamId }: { dreamId: string }) {
   return (
     <ConfirmButton
       label="Delete"
-      confirm="Delete this dream?"
+      confirm="Permanently delete this dream? It will be removed from admin, counts, and all related data."
       action={() => adminDeleteDreamAction(dreamId)}
       variant="danger"
       icon={<Trash2 className="size-4" aria-hidden="true" />}

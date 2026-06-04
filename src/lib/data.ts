@@ -274,7 +274,7 @@ export async function getProfile(username: string, viewerId?: string) {
         createdAt: true,
         _count: {
           select: {
-            dreams: true,
+            dreams: { where: { status: { not: "DELETED" } } },
             followers: true,
             following: true,
             bookmarks: true,
@@ -410,7 +410,9 @@ export async function getAdminStats() {
         },
       }),
       prisma.user.count({ where: { createdAt: { gte: today } } }),
-      prisma.dream.count({ where: { createdAt: { gte: today } } }),
+      prisma.dream.count({
+        where: { createdAt: { gte: today }, status: { not: "DELETED" } },
+      }),
       prisma.report.count({ where: { status: { in: ["OPEN", "REVIEWING"] } } }),
     ]);
 
@@ -454,7 +456,7 @@ export async function getAdminAnalytics() {
         select: { createdAt: true },
       }),
       prisma.dream.findMany({
-        where: { createdAt: { gte: since } },
+        where: { createdAt: { gte: since }, status: { not: "DELETED" } },
         select: { createdAt: true },
       }),
       prisma.comment.findMany({
@@ -496,7 +498,7 @@ export async function getAdminUsers() {
         createdAt: true,
         _count: {
           select: {
-            dreams: true,
+            dreams: { where: { status: { not: "DELETED" } } },
             followers: true,
           },
         },
@@ -511,6 +513,7 @@ export async function getAdminUsers() {
 export async function getAdminDreams() {
   try {
     return await getPrisma().dream.findMany({
+      where: { status: { not: "DELETED" } },
       orderBy: { createdAt: "desc" },
       take: 100,
       include: {

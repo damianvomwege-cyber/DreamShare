@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { canManageRole, requireRole } from "@/lib/auth";
 import { getPrisma } from "@/lib/prisma";
 import { writeAdminLog } from "@/lib/security";
+import { profilePath } from "@/lib/utils";
 import { roleChangeSchema } from "@/lib/validators";
 
 async function auditMeta() {
@@ -130,18 +131,34 @@ export async function changeRoleAction(formData: FormData) {
 
 export async function adminDeleteDreamAction(dreamId: string) {
   const actor = await requireRole("MODERATOR");
-  await getPrisma().dream.update({
+  const prisma = getPrisma();
+  const dream = await prisma.dream.findUnique({
     where: { id: dreamId },
-    data: { status: "DELETED" },
+    select: {
+      title: true,
+      author: { select: { username: true } },
+    },
   });
+
+  if (!dream) return { ok: false, message: "Dream not found." };
+
+  await prisma.dream.delete({ where: { id: dreamId } });
   await writeAdminLog({
     actorId: actor.id,
     action: "DREAM_DELETE",
     targetType: "DREAM",
     targetId: dreamId,
+    metadata: { title: dream.title, author: dream.author.username },
     ...(await auditMeta()),
   });
+  revalidatePath("/");
+  revalidatePath("/explore");
+  revalidatePath("/trending");
+  revalidatePath(`/dream/${dreamId}`);
+  revalidatePath(profilePath(dream.author.username));
+  revalidatePath("/admin");
   revalidatePath("/admin/dreams");
+  revalidatePath("/admin/test");
   return { ok: true };
 }
 

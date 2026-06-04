@@ -29,7 +29,8 @@ export async function DELETE(
   if (!user) return jsonError("Unauthorized", 401);
 
   const { id } = await params;
-  const dream = await getPrisma().dream.findUnique({
+  const prisma = getPrisma();
+  const dream = await prisma.dream.findUnique({
     where: { id },
     select: {
       authorId: true,
@@ -42,10 +43,7 @@ export async function DELETE(
     return jsonError("Forbidden", 403);
   }
 
-  await getPrisma().dream.update({
-    where: { id },
-    data: { status: "DELETED" },
-  });
+  await prisma.dream.delete({ where: { id } });
 
   revalidatePath("/");
   revalidatePath("/explore");

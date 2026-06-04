@@ -81,7 +81,11 @@ export function DreamOwnerControls({
           variant="danger"
           disabled={isPending}
           onClick={() => {
-            if (!window.confirm("Delete this dream? This cannot be undone.")) {
+            if (
+              !window.confirm(
+                "Permanently delete this dream? This cannot be undone.",
+              )
+            ) {
               return;
             }
 

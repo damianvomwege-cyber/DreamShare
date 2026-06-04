@@ -252,11 +252,11 @@ export async function incrementShareAction(dreamId: string) {
 
 export async function deleteDreamAction(dreamId: string) {
   const user = await requireUser();
-  const dream = await getPrisma().dream.findUnique({
+  const prisma = getPrisma();
+  const dream = await prisma.dream.findUnique({
     where: { id: dreamId },
     select: {
       authorId: true,
-      status: true,
       author: { select: { username: true } },
     },
   });
@@ -268,15 +268,10 @@ export async function deleteDreamAction(dreamId: string) {
 
   if (!canDelete) return { ok: false, message: "Not authorized." };
 
-  if (dream.status !== "DELETED") {
-    await getPrisma().dream.update({
-      where: { id: dreamId },
-      data: { status: "DELETED" },
-    });
-  }
+  await prisma.dream.delete({ where: { id: dreamId } });
 
   revalidateDreamSurfaces(dreamId, dream.author.username);
-  return { ok: true, message: "Dream deleted." };
+  return { ok: true, message: "Dream permanently deleted." };
 }
 
 export async function updateDreamVisibilityAction(
