@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import Script from "next/script";
 import { Providers } from "@/components/layout/providers";
 import { APP_NAME } from "@/lib/constants";
@@ -17,10 +18,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const DARK_BACKGROUND = "#05070d";
+const LIGHT_BACKGROUND = "#f3f6fb";
+const THEME_COOKIE = "dreamshare-theme";
+
 const themeInitScript = `
 (function() {
   try {
     var theme = window.localStorage.getItem("dreamshare-theme");
+    if (theme !== "dark" && theme !== "light") {
+      var match = document.cookie.match(/(?:^|; )dreamshare-theme=(dark|light)(?:;|$)/);
+      theme = match ? match[1] : theme;
+    }
     if (theme !== "dark" && theme !== "light") {
       theme = window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
@@ -30,6 +39,7 @@ const themeInitScript = `
     var root = document.documentElement;
     root.classList.toggle("dark", theme === "dark");
     root.classList.toggle("light", theme === "light");
+    root.style.backgroundColor = theme === "dark" ? "${DARK_BACKGROUND}" : "${LIGHT_BACKGROUND}";
     root.style.colorScheme = theme;
   } catch (_) {}
 })();
@@ -82,16 +92,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieTheme = (await cookies()).get(THEME_COOKIE)?.value;
+  const initialTheme = cookieTheme === "light" ? "light" : "dark";
+  const initialBackground =
+    initialTheme === "dark" ? DARK_BACKGROUND : LIGHT_BACKGROUND;
+
   return (
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${initialTheme} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      style={{
+        backgroundColor: initialBackground,
+        colorScheme: initialTheme,
+      }}
     >
       <body className="min-h-full">
         <Script

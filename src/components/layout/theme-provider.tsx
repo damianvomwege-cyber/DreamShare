@@ -6,6 +6,10 @@ type ThemePreference = "light" | "dark";
 
 const THEME_KEY = "dreamshare-theme";
 const THEME_EVENT = "dreamshare-theme-change";
+const THEME_BACKGROUNDS: Record<ThemePreference, string> = {
+  dark: "#05070d",
+  light: "#f3f6fb",
+};
 
 function systemTheme(): ThemePreference {
   if (typeof window === "undefined") return "light";
@@ -25,6 +29,7 @@ function applyTheme(theme: ThemePreference) {
   const root = document.documentElement;
   root.classList.toggle("dark", theme === "dark");
   root.classList.toggle("light", theme === "light");
+  root.style.backgroundColor = THEME_BACKGROUNDS[theme];
   root.style.colorScheme = theme;
 }
 
