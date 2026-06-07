@@ -23,8 +23,9 @@ export function MobileNavigation() {
             <Link
               key={item.href}
               href={item.href}
+              data-sound="nav"
               className={cn(
-                "focus-ring flex flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-medium text-muted-foreground transition hover:-translate-y-0.5 hover:text-foreground",
+                "focus-ring nav-motion flex flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-medium text-muted-foreground transition hover:text-foreground",
                 active && "bg-primary/12 text-primary shadow-sm shadow-cyan-950/10",
               )}
             >

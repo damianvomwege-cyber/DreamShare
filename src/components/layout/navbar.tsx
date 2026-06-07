@@ -11,6 +11,7 @@ import Link from "next/link";
 
 import { DreamShareLogo } from "@/components/brand/dreamshare-logo";
 import { SignOutButton } from "@/components/layout/sign-out-button";
+import { SoundToggle } from "@/components/layout/sound-toggle";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Avatar } from "@/components/ui/avatar";
 import { ButtonLink } from "@/components/ui/button";
@@ -46,7 +47,8 @@ export function Navbar({ user }: { user: User }) {
             <Link
               key={item.href}
               href={item.href}
-              className="focus-ring inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:-translate-y-0.5 hover:bg-muted/75 hover:text-foreground"
+              data-sound="nav"
+              className="focus-ring nav-motion inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted/75 hover:text-foreground"
             >
               <item.icon className="size-4" aria-hidden="true" />
               {item.label}
@@ -56,7 +58,8 @@ export function Navbar({ user }: { user: User }) {
 
         <Link
           href="/explore"
-          className="focus-ring group ml-auto hidden h-10 w-full max-w-md items-center gap-2 rounded-lg border bg-card/62 px-3 text-sm text-muted-foreground shadow-sm shadow-slate-950/5 transition hover:-translate-y-0.5 hover:border-primary/45 hover:bg-card/86 hover:text-foreground md:flex"
+          data-sound="nav"
+          className="focus-ring group nav-motion ml-auto hidden h-10 w-full max-w-md items-center gap-2 rounded-lg border bg-card/62 px-3 text-sm text-muted-foreground shadow-sm shadow-slate-950/5 transition hover:border-primary/45 hover:bg-card/86 hover:text-foreground md:flex"
         >
           <span className="grid size-6 place-items-center rounded-md bg-muted text-muted-foreground transition group-hover:bg-primary/12 group-hover:text-primary">
             <Search className="size-3.5" aria-hidden="true" />
@@ -65,6 +68,7 @@ export function Navbar({ user }: { user: User }) {
         </Link>
 
         <ThemeToggle />
+        <SoundToggle />
 
         {isStaff ? (
           <ButtonLink href="/admin" variant="secondary" className="hidden sm:flex">
@@ -79,7 +83,8 @@ export function Navbar({ user }: { user: User }) {
             <SignOutButton compact className="sm:hidden" />
             <Link
               href={profilePath(user.username)}
-              className="focus-ring rounded-full"
+              data-sound="nav"
+              className="focus-ring group rounded-full"
               aria-label="Open profile"
             >
               <Avatar

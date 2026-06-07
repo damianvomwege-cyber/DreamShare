@@ -12,6 +12,7 @@ import type { ReactNode } from "react";
 
 import { DreamShareLogo } from "@/components/brand/dreamshare-logo";
 import { SignOutButton } from "@/components/layout/sign-out-button";
+import { SoundToggle } from "@/components/layout/sound-toggle";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import type { getCurrentUser } from "@/lib/auth";
@@ -43,8 +44,10 @@ export function AdminShell({
           </Link>
           <Badge className="ml-auto">{user.role}</Badge>
           <ThemeToggle />
+          <SoundToggle />
           <Link
             href="/"
+            data-sound="nav"
             className="focus-ring hidden items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground sm:inline-flex"
           >
             <Home className="size-4" aria-hidden="true" />
@@ -61,6 +64,7 @@ export function AdminShell({
               <Link
                 key={item.href}
                 href={item.href}
+                data-sound="nav"
                 className="focus-ring flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
               >
                 <item.icon className="size-4" aria-hidden="true" />

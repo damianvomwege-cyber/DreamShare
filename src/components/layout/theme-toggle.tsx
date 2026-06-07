@@ -17,6 +17,7 @@ export function ThemeToggle() {
       type="button"
       variant="ghost"
       size="icon"
+      sound="toggle"
       aria-label="Toggle theme"
       title="Toggle theme"
       suppressHydrationWarning

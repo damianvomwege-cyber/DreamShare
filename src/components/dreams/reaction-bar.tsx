@@ -48,6 +48,9 @@ export function ReactionBar({
 }) {
   const [isPending, startTransition] = useTransition();
   const [displayShareCount, setDisplayShareCount] = useState(shareCount);
+  const [poppingReaction, setPoppingReaction] = useState<ReactionType | null>(null);
+  const [bookmarkPop, setBookmarkPop] = useState(false);
+  const [sharePop, setSharePop] = useState(false);
   const [optimistic, updateOptimistic] = useOptimistic(
     { counts, activeReactions, saved, shareCount },
     (
@@ -118,8 +121,11 @@ export function ReactionBar({
           <button
             key={type}
             type="button"
+            data-sound="reaction"
+            data-active={active ? "true" : undefined}
+            data-pop={poppingReaction === type ? "true" : undefined}
             className={cn(
-              "focus-ring inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold transition duration-200 hover:-translate-y-0.5 hover:shadow-sm disabled:opacity-50",
+              "focus-ring reaction-pill inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold disabled:opacity-50",
               active
                 ? `${REACTION_STYLES[type]} border-current/20 shadow-sm`
                 : "bg-background/52 text-muted-foreground hover:bg-muted/80 hover:text-foreground",
@@ -127,7 +133,11 @@ export function ReactionBar({
             disabled={isPending}
             aria-label={`${REACTION_LABELS[type]} reaction`}
             title={REACTION_LABELS[type]}
+            onAnimationEnd={() => {
+              setPoppingReaction((current) => (current === type ? null : current));
+            }}
             onClick={() => {
+              setPoppingReaction(type);
               startTransition(() => {
                 updateOptimistic({ kind: "reaction", type });
                 void toggleReactionAction(dreamId, type);
@@ -146,7 +156,8 @@ export function ReactionBar({
 
       <Link
         href={`/dream/${dreamId}`}
-        className="focus-ring inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border bg-background/52 px-3 text-xs font-bold text-muted-foreground transition duration-200 hover:-translate-y-0.5 hover:bg-muted/80 hover:text-foreground hover:shadow-sm"
+        data-sound="nav"
+        className="focus-ring reaction-pill inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border bg-background/52 px-3 text-xs font-bold text-muted-foreground hover:bg-muted/80 hover:text-foreground"
         aria-label="Open comments"
       >
         <MessageCircle className="size-4" aria-hidden="true" />
@@ -155,8 +166,11 @@ export function ReactionBar({
 
       <button
         type="button"
+        data-sound="save"
+        data-active={optimistic.saved ? "true" : undefined}
+        data-pop={bookmarkPop ? "true" : undefined}
         className={cn(
-          "focus-ring inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold transition duration-200 hover:-translate-y-0.5 hover:bg-muted/80 hover:shadow-sm",
+          "focus-ring reaction-pill inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold hover:bg-muted/80",
           optimistic.saved
             ? "border-amber-500/25 bg-amber-500/10 text-amber-700 shadow-sm dark:text-amber-300"
             : "bg-background/52 text-muted-foreground hover:text-foreground",
@@ -164,7 +178,11 @@ export function ReactionBar({
         disabled={isPending}
         aria-label={optimistic.saved ? "Remove bookmark" : "Save dream"}
         title={optimistic.saved ? "Remove bookmark" : "Save dream"}
+        onAnimationEnd={() => {
+          setBookmarkPop(false);
+        }}
         onClick={() => {
+          setBookmarkPop(true);
           startTransition(() => {
             updateOptimistic({ kind: "bookmark" });
             void toggleBookmarkAction(dreamId);
@@ -176,11 +194,17 @@ export function ReactionBar({
 
       <button
         type="button"
-        className="focus-ring inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border bg-background/52 px-3 text-xs font-bold text-muted-foreground transition duration-200 hover:-translate-y-0.5 hover:bg-muted/80 hover:text-foreground hover:shadow-sm"
+        data-sound="share"
+        data-pop={sharePop ? "true" : undefined}
+        className="focus-ring reaction-pill inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border bg-background/52 px-3 text-xs font-bold text-muted-foreground hover:bg-muted/80 hover:text-foreground"
         aria-label="Share dream"
         title="Share dream"
         disabled={isPending}
+        onAnimationEnd={() => {
+          setSharePop(false);
+        }}
         onClick={() => {
+          setSharePop(true);
           void shareDream();
         }}
       >

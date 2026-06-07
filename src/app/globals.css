@@ -26,6 +26,10 @@
   --soft-shadow: 0 12px 36px rgba(15, 23, 42, 0.07);
   --glow-primary: 0 18px 56px rgba(8, 168, 190, 0.2);
   --glow-accent: 0 18px 52px rgba(245, 109, 74, 0.18);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-crisp: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-fast: 160ms;
+  --motion-medium: 260ms;
 }
 
 @theme inline {
@@ -114,6 +118,8 @@ body {
     linear-gradient(270deg, color-mix(in srgb, var(--accent), transparent 92%) 0%, transparent 30%),
     linear-gradient(180deg, var(--background), color-mix(in srgb, var(--background), #000 5%));
   background-attachment: fixed;
+  background-size: 170% 170%, 160% 160%, 100% 100%;
+  animation: dream-aurora 22s ease-in-out infinite alternate;
 }
 
 .dream-shell {
@@ -122,6 +128,18 @@ body {
     linear-gradient(90deg, color-mix(in srgb, var(--foreground), transparent 95%) 1px, transparent 1px),
     linear-gradient(180deg, transparent 0, color-mix(in srgb, var(--background), #000 3%) 100%);
   background-size: 48px 48px, 48px 48px, 100% 100%;
+  animation: grid-drift 28s linear infinite;
+}
+
+.dream-gradient.dream-shell {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--foreground), transparent 95%) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--foreground), transparent 95%) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--primary), transparent 92%) 0%, transparent 28%),
+    linear-gradient(270deg, color-mix(in srgb, var(--accent), transparent 92%) 0%, transparent 30%),
+    linear-gradient(180deg, var(--background), color-mix(in srgb, var(--background), #000 5%));
+  background-size: 48px 48px, 48px 48px, 170% 170%, 160% 160%, 100% 100%;
+  animation: dream-shell-motion 32s ease-in-out infinite alternate;
 }
 
 .glass-surface {
@@ -141,6 +159,7 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  z-index: 2;
   border-radius: inherit;
   padding: 1px;
   background: linear-gradient(
@@ -150,10 +169,20 @@ body {
     color-mix(in srgb, var(--border), transparent 20%) 58%,
     color-mix(in srgb, var(--accent), transparent 16%)
   );
+  background-size: 190% 190%;
+  opacity: 0.74;
   mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   mask-composite: exclude;
+  transition:
+    background-position var(--motion-medium) var(--ease-crisp),
+    opacity var(--motion-medium) var(--ease-crisp);
+}
+
+.premium-border:is(:hover, :focus-within)::before {
+  background-position: 100% 0;
+  opacity: 1;
 }
 
 .content-viewport {
@@ -161,6 +190,9 @@ body {
 }
 
 .social-card {
+  isolation: isolate;
+  overflow: hidden;
+  position: relative;
   background:
     linear-gradient(180deg, var(--surface-2), var(--surface-1)),
     linear-gradient(135deg, color-mix(in srgb, var(--primary), transparent 94%), transparent 42%),
@@ -169,21 +201,65 @@ body {
   backdrop-filter: blur(24px);
 }
 
+.social-card::after {
+  background:
+    radial-gradient(
+      circle at var(--spotlight-x, 18%) var(--spotlight-y, 0%),
+      color-mix(in srgb, var(--primary), transparent 82%),
+      transparent 34%
+    ),
+    linear-gradient(
+      115deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 46%,
+      transparent 54%
+    );
+  content: "";
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: translate3d(-8%, -6%, 0) scale(0.98);
+  transition:
+    opacity var(--motion-medium) var(--ease-crisp),
+    transform var(--motion-medium) var(--ease-spring);
+  z-index: 0;
+}
+
+.social-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.social-card:is(:hover, :focus-within)::after {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
 .social-card-hover {
   transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    background 180ms ease;
+    transform var(--motion-medium) var(--ease-spring),
+    border-color var(--motion-medium) var(--ease-crisp),
+    box-shadow var(--motion-medium) var(--ease-crisp),
+    background var(--motion-medium) var(--ease-crisp);
+  will-change: transform;
 }
 
 .social-card-hover:hover {
-  transform: translateY(-2px);
+  transform: translateY(-5px) scale(1.006);
   border-color: color-mix(in srgb, var(--primary), transparent 45%);
-  box-shadow: var(--elevated-shadow);
+  box-shadow:
+    var(--elevated-shadow),
+    0 0 0 1px color-mix(in srgb, var(--primary), transparent 78%);
+}
+
+.social-card-hover:active {
+  transform: translateY(-2px) scale(0.998);
 }
 
 .kinetic-bar {
+  animation: gradient-flow 6s ease-in-out infinite;
+  background-size: 220% 100% !important;
   position: relative;
   overflow: hidden;
 }
@@ -200,7 +276,221 @@ body {
   inset: 0 auto 0 -45%;
   pointer-events: none;
   position: absolute;
+  transform: skewX(-18deg);
   width: 42%;
+}
+
+.motion-button {
+  position: relative;
+  transform: translateZ(0);
+  transition:
+    transform var(--motion-fast) var(--ease-spring),
+    box-shadow var(--motion-medium) var(--ease-crisp),
+    filter var(--motion-fast) var(--ease-crisp),
+    border-color var(--motion-fast) var(--ease-crisp),
+    background var(--motion-fast) var(--ease-crisp);
+  will-change: transform;
+}
+
+.motion-button::before {
+  background: linear-gradient(
+    110deg,
+    transparent,
+    rgba(255, 255, 255, 0.22),
+    transparent
+  );
+  content: "";
+  inset: -30% auto -30% -55%;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-120%) skewX(-18deg);
+  transition: transform 520ms var(--ease-crisp);
+  width: 46%;
+}
+
+.motion-button:hover {
+  transform: translateY(-2px) scale(1.012);
+}
+
+.motion-button:hover::before {
+  transform: translateX(430%) skewX(-18deg);
+}
+
+.motion-button:active {
+  transform: translateY(0) scale(0.982);
+}
+
+.motion-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-motion {
+  position: relative;
+  transform: translateZ(0);
+}
+
+.nav-motion::after {
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: 999px;
+  bottom: 4px;
+  content: "";
+  height: 2px;
+  left: 12px;
+  opacity: 0;
+  position: absolute;
+  right: 12px;
+  transform: scaleX(0.35);
+  transform-origin: left;
+  transition:
+    opacity var(--motion-fast) var(--ease-crisp),
+    transform var(--motion-medium) var(--ease-spring);
+}
+
+.nav-motion:hover::after,
+.nav-motion:focus-visible::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.nav-motion svg,
+.avatar-motion,
+.tag-pill {
+  transition:
+    transform var(--motion-medium) var(--ease-spring),
+    color var(--motion-fast) var(--ease-crisp),
+    background var(--motion-fast) var(--ease-crisp),
+    border-color var(--motion-fast) var(--ease-crisp),
+    box-shadow var(--motion-medium) var(--ease-crisp);
+}
+
+.nav-motion:hover svg,
+.nav-motion:focus-visible svg {
+  transform: translateY(-1px) rotate(-6deg) scale(1.12);
+}
+
+.avatar-motion:hover,
+.group:hover .avatar-motion,
+.focus-ring:focus-visible .avatar-motion {
+  transform: translateY(-1px) scale(1.055);
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.18),
+    0 0 0 3px color-mix(in srgb, var(--primary), transparent 78%);
+}
+
+.tag-pill {
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+
+.tag-pill::before {
+  background: radial-gradient(
+    circle at 20% 20%,
+    color-mix(in srgb, var(--primary), transparent 50%),
+    transparent 46%
+  );
+  content: "";
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: scale(0.78);
+  transition:
+    opacity var(--motion-fast) var(--ease-crisp),
+    transform var(--motion-medium) var(--ease-spring);
+}
+
+.tag-pill:hover,
+.tag-pill:focus-visible {
+  transform: translateY(-2px) scale(1.025);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--primary), transparent 84%);
+}
+
+.tag-pill:hover::before,
+.tag-pill:focus-visible::before {
+  opacity: 0.28;
+  transform: scale(1.12);
+}
+
+.tag-pill > * {
+  position: relative;
+}
+
+.reaction-pill {
+  overflow: hidden;
+  position: relative;
+  transform: translateZ(0);
+  transition:
+    transform var(--motion-fast) var(--ease-spring),
+    border-color var(--motion-fast) var(--ease-crisp),
+    box-shadow var(--motion-medium) var(--ease-crisp),
+    background var(--motion-fast) var(--ease-crisp),
+    color var(--motion-fast) var(--ease-crisp);
+  will-change: transform;
+}
+
+.reaction-pill::after {
+  background: radial-gradient(
+    circle at 50% 100%,
+    color-mix(in srgb, var(--primary), transparent 62%),
+    transparent 58%
+  );
+  content: "";
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: scale(0.7);
+  transition:
+    opacity var(--motion-fast) var(--ease-crisp),
+    transform var(--motion-medium) var(--ease-spring);
+}
+
+.reaction-pill:hover,
+.reaction-pill:focus-visible {
+  transform: translateY(-2px) scale(1.03);
+  border-color: color-mix(in srgb, var(--primary), transparent 58%);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.12),
+    0 0 0 1px color-mix(in srgb, var(--primary), transparent 84%);
+}
+
+.reaction-pill:hover::after,
+.reaction-pill:focus-visible::after,
+.reaction-pill[data-active="true"]::after {
+  opacity: 0.34;
+  transform: scale(1.16);
+}
+
+.reaction-pill svg {
+  position: relative;
+  transition:
+    transform var(--motion-medium) var(--ease-spring),
+    filter var(--motion-fast) var(--ease-crisp);
+  z-index: 1;
+}
+
+.reaction-pill span {
+  position: relative;
+  z-index: 1;
+}
+
+.reaction-pill:hover svg,
+.reaction-pill:focus-visible svg {
+  transform: translateY(-1px) rotate(-8deg) scale(1.16);
+}
+
+.reaction-pill[data-active="true"] svg {
+  filter: drop-shadow(0 0 10px color-mix(in srgb, currentColor, transparent 45%));
+}
+
+.reaction-pill[data-pop="true"] {
+  animation: reaction-pop 420ms var(--ease-spring);
+}
+
+.reaction-pill[data-pop="true"] svg {
+  animation: icon-pop 420ms var(--ease-spring);
 }
 
 .pulse-dot {
@@ -218,11 +508,80 @@ body {
 @keyframes sheen {
   0%,
   42% {
-    transform: translateX(0);
+    transform: translateX(0) skewX(-18deg);
   }
 
   100% {
-    transform: translateX(340%);
+    transform: translateX(340%) skewX(-18deg);
+  }
+}
+
+@keyframes dream-aurora {
+  0% {
+    background-position: 0% 10%, 100% 20%, 0 0;
+  }
+
+  100% {
+    background-position: 100% 0%, 0% 100%, 0 0;
+  }
+}
+
+@keyframes grid-drift {
+  0% {
+    background-position: 0 0, 0 0, 0 0;
+  }
+
+  100% {
+    background-position: 48px 48px, -48px 48px, 0 0;
+  }
+}
+
+@keyframes gradient-flow {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes dream-shell-motion {
+  0% {
+    background-position: 0 0, 0 0, 0% 10%, 100% 20%, 0 0;
+  }
+
+  100% {
+    background-position: 48px 48px, -48px 48px, 100% 0%, 0% 100%, 0 0;
+  }
+}
+
+@keyframes reaction-pop {
+  0% {
+    transform: translateY(-1px) scale(1);
+  }
+
+  42% {
+    transform: translateY(-3px) scale(1.12);
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes icon-pop {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+
+  45% {
+    transform: scale(1.28) rotate(-12deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
   }
 }
 

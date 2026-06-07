@@ -1,6 +1,7 @@
 import type { ButtonHTMLAttributes, AnchorHTMLAttributes, ReactNode } from "react";
 import Link from "next/link";
 
+import type { DreamSound } from "@/components/layout/sound-effects";
 import { cn } from "@/lib/utils";
 
 const variants = {
@@ -23,18 +24,23 @@ const sizes = {
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: keyof typeof variants;
   size?: keyof typeof sizes;
+  sound?: DreamSound | "none";
 };
 
 export function Button({
   className,
   variant = "primary",
   size = "md",
+  sound,
   ...props
 }: ButtonProps) {
+  const soundName = sound ?? (variant === "danger" ? "danger" : "tap");
+
   return (
     <button
+      data-sound={soundName === "none" ? undefined : soundName}
       className={cn(
-        "focus-ring inline-flex shrink-0 items-center justify-center gap-2 rounded-lg font-medium transition duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:pointer-events-none disabled:opacity-55",
+        "focus-ring motion-button inline-flex shrink-0 items-center justify-center gap-2 overflow-hidden rounded-lg font-medium disabled:pointer-events-none disabled:opacity-55",
         variants[variant],
         sizes[size],
         className,
@@ -49,6 +55,7 @@ type ButtonLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
   children: ReactNode;
   variant?: keyof typeof variants;
   size?: keyof typeof sizes;
+  sound?: DreamSound | "none";
 };
 
 export function ButtonLink({
@@ -57,13 +64,17 @@ export function ButtonLink({
   size = "md",
   href,
   children,
+  sound,
   ...props
 }: ButtonLinkProps) {
+  const soundName = sound ?? (variant === "danger" ? "danger" : "nav");
+
   return (
     <Link
       href={href}
+      data-sound={soundName === "none" ? undefined : soundName}
       className={cn(
-        "focus-ring inline-flex shrink-0 items-center justify-center gap-2 rounded-lg font-medium transition duration-200 hover:-translate-y-0.5 active:translate-y-0",
+        "focus-ring motion-button inline-flex shrink-0 items-center justify-center gap-2 overflow-hidden rounded-lg font-medium",
         variants[variant],
         sizes[size],
         className,

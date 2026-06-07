@@ -53,7 +53,11 @@ export function DreamCard({
         aria-hidden="true"
       />
       {dream.imageUrl ? (
-        <Link href={`/dream/${dream.id}`} className="relative block aspect-[16/8] overflow-hidden">
+        <Link
+          href={`/dream/${dream.id}`}
+          data-sound="nav"
+          className="relative block aspect-[16/8] overflow-hidden"
+        >
           <Image
             src={dream.imageUrl}
             alt=""
@@ -72,6 +76,7 @@ export function DreamCard({
         <div className="flex items-start gap-3">
           <Link
             href={profilePath(dream.author.username)}
+            data-sound="nav"
             className="focus-ring relative rounded-full"
           >
             <Avatar
@@ -88,6 +93,7 @@ export function DreamCard({
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Link
                 href={profilePath(dream.author.username)}
+                data-sound="nav"
                 className="focus-ring rounded text-sm font-bold hover:text-primary"
               >
                 {dream.author.displayName}
@@ -124,7 +130,7 @@ export function DreamCard({
         </div>
 
         <div>
-          <Link href={`/dream/${dream.id}`} className="focus-ring rounded">
+          <Link href={`/dream/${dream.id}`} data-sound="nav" className="focus-ring rounded">
             <h2 className="text-xl font-bold tracking-normal text-foreground transition group-hover:text-primary sm:text-2xl">
               {dream.title}
             </h2>
@@ -140,9 +146,10 @@ export function DreamCard({
               <Link
                 key={tag}
                 href={`/explore?tag=${encodeURIComponent(tag)}`}
-                className="focus-ring rounded-full border border-primary/10 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary transition hover:-translate-y-0.5 hover:bg-primary/15"
+                data-sound="nav"
+                className="focus-ring tag-pill rounded-full border border-primary/10 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary"
               >
-                #{tag}
+                <span>#{tag}</span>
               </Link>
             ))}
           </div>

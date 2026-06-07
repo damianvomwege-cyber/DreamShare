@@ -16,7 +16,8 @@ export function Sidebar({ user }: { user: User }) {
         {user ? (
           <Link
             href={profilePath(user.username)}
-            className="focus-ring flex items-center gap-3 rounded-lg border bg-background/48 p-3 transition hover:border-primary/35 hover:bg-muted/55"
+            data-sound="nav"
+            className="focus-ring group flex items-center gap-3 rounded-lg border bg-background/48 p-3 transition hover:border-primary/35 hover:bg-muted/55"
           >
             <Avatar src={user.image} name={user.displayName} className="size-11" />
             <span className="min-w-0">
@@ -44,7 +45,8 @@ export function Sidebar({ user }: { user: User }) {
           <Link
             key={item.href}
             href={item.href}
-            className="focus-ring group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition hover:-translate-y-0.5 hover:bg-muted/75 hover:text-foreground"
+            data-sound="nav"
+            className="focus-ring nav-motion group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/75 hover:text-foreground"
           >
             <span className="grid size-8 place-items-center rounded-lg bg-background/60 text-muted-foreground transition group-hover:bg-primary/12 group-hover:text-primary">
               <item.icon className="size-4" aria-hidden="true" />

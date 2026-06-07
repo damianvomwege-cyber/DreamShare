@@ -18,6 +18,7 @@ export function SignOutButton({
       type="button"
       variant="ghost"
       size={compact ? "icon" : "md"}
+      sound="danger"
       className={cn(className)}
       aria-label="Logout"
       title="Logout"
