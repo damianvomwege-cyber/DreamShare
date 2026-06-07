@@ -118,7 +118,7 @@ export default async function ExplorePage({
         ) : null}
 
         <section className="space-y-4">
-          <div className="social-card sticky top-20 z-20 rounded-lg border px-3 py-2.5">
+          <div className="social-card rounded-lg border px-3 py-2.5">
             <h2 className="text-base font-semibold">Dream Results</h2>
           </div>
           {dreams.length === 0 ? (

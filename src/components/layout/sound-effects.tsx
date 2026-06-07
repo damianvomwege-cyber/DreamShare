@@ -23,29 +23,29 @@ type SoundNote = {
 };
 
 const soundMap: Record<DreamSound, SoundNote[]> = {
-  tap: [{ frequency: 620, start: 0, duration: 0.045, gain: 0.026, type: "triangle" }],
+  tap: [{ frequency: 620, start: 0, duration: 0.055, gain: 0.055, type: "triangle" }],
   nav: [
-    { frequency: 360, start: 0, duration: 0.05, gain: 0.02, type: "sine" },
-    { frequency: 540, start: 0.035, duration: 0.06, gain: 0.018, type: "triangle" },
+    { frequency: 360, start: 0, duration: 0.06, gain: 0.042, type: "sine" },
+    { frequency: 540, start: 0.035, duration: 0.075, gain: 0.038, type: "triangle" },
   ],
   reaction: [
-    { frequency: 740, start: 0, duration: 0.052, gain: 0.026, type: "triangle" },
-    { frequency: 990, start: 0.045, duration: 0.065, gain: 0.02, type: "sine" },
+    { frequency: 740, start: 0, duration: 0.06, gain: 0.06, type: "triangle" },
+    { frequency: 990, start: 0.045, duration: 0.075, gain: 0.046, type: "sine" },
   ],
   save: [
-    { frequency: 520, start: 0, duration: 0.06, gain: 0.024, type: "triangle" },
-    { frequency: 780, start: 0.052, duration: 0.08, gain: 0.02, type: "triangle" },
+    { frequency: 520, start: 0, duration: 0.07, gain: 0.052, type: "triangle" },
+    { frequency: 780, start: 0.052, duration: 0.09, gain: 0.044, type: "triangle" },
   ],
   share: [
-    { frequency: 440, start: 0, duration: 0.045, gain: 0.02, type: "sine" },
-    { frequency: 660, start: 0.04, duration: 0.055, gain: 0.019, type: "sine" },
-    { frequency: 880, start: 0.085, duration: 0.06, gain: 0.016, type: "triangle" },
+    { frequency: 440, start: 0, duration: 0.055, gain: 0.044, type: "sine" },
+    { frequency: 660, start: 0.04, duration: 0.065, gain: 0.04, type: "sine" },
+    { frequency: 880, start: 0.085, duration: 0.075, gain: 0.034, type: "triangle" },
   ],
   toggle: [
-    { frequency: 300, start: 0, duration: 0.055, gain: 0.021, type: "sine" },
-    { frequency: 600, start: 0.05, duration: 0.075, gain: 0.02, type: "triangle" },
+    { frequency: 300, start: 0, duration: 0.065, gain: 0.044, type: "sine" },
+    { frequency: 600, start: 0.05, duration: 0.085, gain: 0.042, type: "triangle" },
   ],
-  danger: [{ frequency: 190, start: 0, duration: 0.09, gain: 0.024, type: "sawtooth" }],
+  danger: [{ frequency: 190, start: 0, duration: 0.11, gain: 0.045, type: "sawtooth" }],
 };
 
 let audioContext: AudioContext | null = null;
@@ -125,32 +125,38 @@ export function playDreamSound(
     return;
   }
 
-  void context.resume();
+  const play = () => {
+    const notes = soundMap[sound] ?? soundMap.tap;
+    const now = context.currentTime;
 
-  const notes = soundMap[sound] ?? soundMap.tap;
-  const now = context.currentTime;
+    for (const note of notes) {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      const start = now + note.start;
+      const end = start + note.duration;
 
-  for (const note of notes) {
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    const start = now + note.start;
-    const end = start + note.duration;
+      oscillator.type = note.type ?? "sine";
+      oscillator.frequency.setValueAtTime(note.frequency, start);
+      oscillator.frequency.exponentialRampToValueAtTime(
+        Math.max(80, note.frequency * 0.72),
+        end,
+      );
 
-    oscillator.type = note.type ?? "sine";
-    oscillator.frequency.setValueAtTime(note.frequency, start);
-    oscillator.frequency.exponentialRampToValueAtTime(
-      Math.max(80, note.frequency * 0.72),
-      end,
-    );
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(note.gain, start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
 
-    gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(note.gain, start + 0.008);
-    gain.gain.exponentialRampToValueAtTime(0.0001, end);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(start);
+      oscillator.stop(end + 0.02);
+    }
+  };
 
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start(start);
-    oscillator.stop(end + 0.02);
+  if (context.state === "suspended") {
+    void context.resume().then(play).catch(() => {});
+  } else {
+    play();
   }
 }
 
