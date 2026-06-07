@@ -20,6 +20,6 @@ export default function robots(): MetadataRoute.Robots {
         "/verify-email",
       ],
     },
-    sitemap: absoluteUrl("/sitemap.xml"),
+    sitemap: [absoluteUrl("/google-sitemap.xml"), absoluteUrl("/sitemap.xml")],
   };
 }
