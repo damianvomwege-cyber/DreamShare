@@ -48,33 +48,25 @@ function DreamColumn({
   title,
   dreams,
   currentUserId,
-  emptyTitle,
-  emptyDescription,
 }: {
   title: string;
   dreams: DreamCardData[];
   currentUserId?: string;
-  emptyTitle: string;
-  emptyDescription: string;
 }) {
+  if (dreams.length === 0) {
+    return null;
+  }
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold tracking-normal">{title}</h2>
-      {dreams.length === 0 ? (
-        <EmptyState
-          icon={Sparkles}
-          title={emptyTitle}
-          description={emptyDescription}
+      {dreams.map((dream) => (
+        <DreamCard
+          key={dream.id}
+          dream={dream}
+          currentUserId={currentUserId}
         />
-      ) : (
-        dreams.map((dream) => (
-          <DreamCard
-            key={dream.id}
-            dream={dream}
-            currentUserId={currentUserId}
-          />
-        ))
-      )}
+      ))}
     </div>
   );
 }
@@ -124,22 +116,20 @@ export default async function TrendingPage() {
         )}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-2">
-        <DreamColumn
-          title="Most Liked"
-          dreams={liked}
-          currentUserId={user?.id}
-          emptyTitle="No extra liked dreams yet"
-          emptyDescription="Liked dreams that are not already shown above will appear here."
-        />
-        <DreamColumn
-          title="New Dreams"
-          dreams={newest}
-          currentUserId={user?.id}
-          emptyTitle="No extra new dreams yet"
-          emptyDescription="New dreams that are not already shown above will appear here."
-        />
-      </section>
+      {liked.length > 0 || newest.length > 0 ? (
+        <section className="grid gap-6 xl:grid-cols-2">
+          <DreamColumn
+            title="Most Liked"
+            dreams={liked}
+            currentUserId={user?.id}
+          />
+          <DreamColumn
+            title="New Dreams"
+            dreams={newest}
+            currentUserId={user?.id}
+          />
+        </section>
+      ) : null}
     </div>
   );
 }
