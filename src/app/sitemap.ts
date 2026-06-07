@@ -1,14 +1,9 @@
 import type { MetadataRoute } from "next";
 
-import { absoluteUrl } from "@/lib/utils";
+import { getDreamShareSitemap } from "@/lib/seo";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
+export const revalidate = 3600;
 
-  return ["/", "/explore", "/trending", "/login", "/register"].map((path) => ({
-    url: absoluteUrl(path),
-    lastModified: now,
-    changeFrequency: "daily",
-    priority: path === "/" ? 1 : 0.7,
-  }));
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  return getDreamShareSitemap();
 }

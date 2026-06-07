@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/layout/providers";
 import { APP_NAME } from "@/lib/constants";
+import { defaultOgImage, defaultSeoDescription } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
 import "./globals.css";
 
@@ -21,8 +22,8 @@ export const metadata: Metadata = {
     default: `${APP_NAME} - Share the dreams you wake up remembering`,
     template: `%s | ${APP_NAME}`,
   },
-  description:
-    "DreamShare is a social platform for posting dreams, reacting to dream stories, following dreamers, and exploring trending sleep worlds.",
+  description: defaultSeoDescription(),
+  applicationName: APP_NAME,
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",
@@ -37,17 +38,28 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: APP_NAME,
-    description:
-      "Post dreams, follow dreamers, save favorites, and explore what the world dreamed last night.",
+    description: defaultSeoDescription(),
     url: absoluteUrl(),
     siteName: APP_NAME,
     type: "website",
+    images: [
+      {
+        url: defaultOgImage(),
+        width: 1200,
+        height: 630,
+        alt: `${APP_NAME} social dream journal`,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: APP_NAME,
-    description:
-      "A modern social platform for dreams, reactions, comments, follows, and trending sleep stories.",
+    description: defaultSeoDescription(),
+    images: [defaultOgImage()],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

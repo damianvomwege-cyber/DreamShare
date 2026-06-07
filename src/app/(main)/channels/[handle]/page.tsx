@@ -8,7 +8,12 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { getCurrentUser } from "@/lib/auth";
 import { getProfile } from "@/lib/data";
 import { getPrisma } from "@/lib/prisma";
-import { displayUsername, normalizeUsername, profilePath } from "@/lib/utils";
+import {
+  defaultOgImage,
+  getPublicProfileSeo,
+  truncateForSeo,
+} from "@/lib/seo";
+import { absoluteUrl, displayUsername, normalizeUsername, profilePath } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -91,8 +96,52 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { handle } = await params;
   const username = usernameFromHandle(handle);
+  const profile = await getPublicProfileSeo(username);
 
-  return { title: username ? displayUsername(username) : "Channel" };
+  if (!profile) {
+    return {
+      title: username ? displayUsername(username) : "Channel",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const path = profilePath(profile.username);
+  const title = `${profile.displayName} (${displayUsername(profile.username)})`;
+  const description = truncateForSeo(
+    profile.bio ||
+      `${profile.displayName} shares public dreams on DreamShare. Read their dream journal, followers, and latest sleep stories.`,
+  );
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: path,
+    },
+    openGraph: {
+      title,
+      description,
+      url: absoluteUrl(path),
+      type: "profile",
+      images: [
+        {
+          url: profile.avatarUrl || defaultOgImage(),
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [profile.avatarUrl || defaultOgImage()],
+    },
+  };
 }
 
 export default async function ChannelPage({

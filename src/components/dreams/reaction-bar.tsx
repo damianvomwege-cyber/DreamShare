@@ -76,6 +76,37 @@ export function ReactionBar({
       };
     },
   );
+  async function shareDream() {
+    const shareUrl = `${window.location.origin}/dream/${dreamId}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "DreamShare dream",
+          text: "Read this dream on DreamShare.",
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard?.writeText(shareUrl);
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+    }
+
+    startTransition(() => {
+      void fetch(`/api/dreams/${dreamId}/share`, {
+        method: "POST",
+      })
+        .then((response) => response.json())
+        .then((result: { counted?: boolean }) => {
+          if (result.counted) {
+            setDisplayShareCount((count) => count + 1);
+          }
+        });
+    });
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -146,19 +177,7 @@ export function ReactionBar({
         title="Share dream"
         disabled={isPending}
         onClick={() => {
-          void navigator.clipboard?.writeText(`${window.location.origin}/dream/${dreamId}`);
-
-          startTransition(() => {
-            void fetch(`/api/dreams/${dreamId}/share`, {
-              method: "POST",
-            })
-              .then((response) => response.json())
-              .then((result: { counted?: boolean }) => {
-                if (result.counted) {
-                  setDisplayShareCount((count) => count + 1);
-                }
-              });
-          });
+          void shareDream();
         }}
       >
         <Share2 className="size-4" aria-hidden="true" />

@@ -10,6 +10,11 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Trending",
+  description:
+    "Explore trending dreams, most liked dream stories, and new public dreams shared by the DreamShare community.",
+  alternates: {
+    canonical: "/trending",
+  },
 };
 
 export default async function TrendingPage() {

@@ -6,15 +6,21 @@ import { notFound } from "next/navigation";
 import { CommentSection } from "@/components/comments/comment-section";
 import { DreamOwnerControls } from "@/components/dreams/dream-owner-controls";
 import { ReactionBar } from "@/components/dreams/reaction-bar";
+import { DreamStructuredData } from "@/components/seo/structured-data";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import type { ReactionType } from "@/generated/prisma/client";
 import { getCurrentUser } from "@/lib/auth";
-import { MOOD_LABELS, REACTION_LABELS } from "@/lib/constants";
+import { APP_NAME, MOOD_LABELS, REACTION_LABELS } from "@/lib/constants";
 import { getDreamById } from "@/lib/data";
 import { getPrisma } from "@/lib/prisma";
-import { profilePath, timeAgo } from "@/lib/utils";
+import {
+  dreamSeoKeywords,
+  getPublicDreamSeo,
+  truncateForSeo,
+} from "@/lib/seo";
+import { absoluteUrl, profilePath, timeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -24,14 +30,56 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const dream = await getPrisma().dream.findUnique({
-    where: { id },
-    select: { title: true, description: true },
-  });
+  const dream = await getPublicDreamSeo(id);
+
+  if (!dream) {
+    return {
+      title: "Dream not found",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const title = `${dream.title} by ${dream.author.displayName}`;
+  const description = truncateForSeo(dream.description);
+  const path = `/dream/${dream.id}`;
+  const previewImages = dream.imageUrl
+    ? [
+        {
+          url: dream.imageUrl,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ]
+    : undefined;
 
   return {
-    title: dream?.title ?? "Dream",
-    description: dream?.description.slice(0, 155),
+    title,
+    description,
+    keywords: dreamSeoKeywords(dream),
+    alternates: {
+      canonical: path,
+    },
+    openGraph: {
+      title,
+      description,
+      url: absoluteUrl(path),
+      siteName: APP_NAME,
+      type: "article",
+      publishedTime: dream.createdAt.toISOString(),
+      modifiedTime: dream.updatedAt.toISOString(),
+      authors: [dream.author.displayName],
+      images: previewImages,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: dream.imageUrl ? [dream.imageUrl] : undefined,
+    },
   };
 }
 
@@ -75,6 +123,7 @@ export default async function DreamDetailsPage({
 
   return (
     <div className="space-y-6">
+      <DreamStructuredData dream={dream} />
       <Card className="overflow-hidden">
         {dream.imageUrl ? (
           <div className="relative aspect-[16/7]">

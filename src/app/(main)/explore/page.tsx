@@ -17,6 +17,11 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Explore",
+  description:
+    "Search public dream stories by keyword, dream category, tags, mood, and dreamer on DreamShare.",
+  alternates: {
+    canonical: "/explore",
+  },
 };
 
 export default async function ExplorePage({

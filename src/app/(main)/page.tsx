@@ -9,12 +9,38 @@ import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getCurrentUser } from "@/lib/auth";
 import { getCategories, getDreamFeed, getTrendingDreams } from "@/lib/data";
+import { defaultOgImage, defaultSeoDescription } from "@/lib/seo";
 import { CloudMoon, Compass, Flame, Sparkles } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Home",
+  title: {
+    absolute: "DreamShare - Share dreams and explore what people dreamed",
+  },
+  description: defaultSeoDescription(),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "DreamShare - Share dreams and explore what people dreamed",
+    description: defaultSeoDescription(),
+    url: "/",
+    images: [
+      {
+        url: defaultOgImage(),
+        width: 1200,
+        height: 630,
+        alt: "DreamShare social dream journal",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DreamShare - Share dreams and explore what people dreamed",
+    description: defaultSeoDescription(),
+    images: [defaultOgImage()],
+  },
 };
 
 export default async function HomePage() {
