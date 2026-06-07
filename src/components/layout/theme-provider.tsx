@@ -22,8 +22,10 @@ function storedTheme(): ThemePreference {
 
 function applyTheme(theme: ThemePreference) {
   if (typeof document === "undefined") return;
-  document.documentElement.classList.toggle("dark", theme === "dark");
-  document.documentElement.style.colorScheme = theme;
+  const root = document.documentElement;
+  root.classList.toggle("dark", theme === "dark");
+  root.classList.toggle("light", theme === "light");
+  root.style.colorScheme = theme;
 }
 
 function subscribe(callback: () => void) {
@@ -67,6 +69,7 @@ export function useThemePreference() {
 export function setThemePreference(theme: ThemePreference) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(THEME_KEY, theme);
+  document.cookie = `${THEME_KEY}=${theme}; Max-Age=31536000; Path=/; SameSite=Lax`;
   applyTheme(theme);
   window.dispatchEvent(new Event(THEME_EVENT));
 }
