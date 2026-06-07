@@ -109,7 +109,7 @@ export function ReactionBar({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-0.5">
       {(Object.keys(REACTION_LABELS) as ReactionType[]).map((type) => {
         const Icon = icons[type];
         const active = optimistic.activeReactions.includes(type);
@@ -119,10 +119,10 @@ export function ReactionBar({
             key={type}
             type="button"
             className={cn(
-              "focus-ring inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition hover:-translate-y-0.5 disabled:opacity-50",
+              "focus-ring inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold transition duration-200 hover:-translate-y-0.5 hover:shadow-sm disabled:opacity-50",
               active
-                ? REACTION_STYLES[type]
-                : "bg-card text-muted-foreground hover:bg-muted",
+                ? `${REACTION_STYLES[type]} border-current/20 shadow-sm`
+                : "bg-background/52 text-muted-foreground hover:bg-muted/80 hover:text-foreground",
             )}
             disabled={isPending}
             aria-label={`${REACTION_LABELS[type]} reaction`}
@@ -135,14 +135,18 @@ export function ReactionBar({
             }}
           >
             <Icon className="size-4" aria-hidden="true" />
-            <span>{compact ? compactNumber(optimistic.counts[type]) : optimistic.counts[type]}</span>
+            <span>
+              {compact
+                ? compactNumber(optimistic.counts[type])
+                : optimistic.counts[type]}
+            </span>
           </button>
         );
       })}
 
       <Link
         href={`/dream/${dreamId}`}
-        className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-lg border bg-card px-2.5 text-xs font-medium text-muted-foreground transition hover:bg-muted"
+        className="focus-ring inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border bg-background/52 px-3 text-xs font-bold text-muted-foreground transition duration-200 hover:-translate-y-0.5 hover:bg-muted/80 hover:text-foreground hover:shadow-sm"
         aria-label="Open comments"
       >
         <MessageCircle className="size-4" aria-hidden="true" />
@@ -152,10 +156,10 @@ export function ReactionBar({
       <button
         type="button"
         className={cn(
-          "focus-ring inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition hover:bg-muted",
+          "focus-ring inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold transition duration-200 hover:-translate-y-0.5 hover:bg-muted/80 hover:shadow-sm",
           optimistic.saved
-            ? "bg-amber-500/10 text-amber-700 dark:text-amber-300"
-            : "bg-card text-muted-foreground",
+            ? "border-amber-500/25 bg-amber-500/10 text-amber-700 shadow-sm dark:text-amber-300"
+            : "bg-background/52 text-muted-foreground hover:text-foreground",
         )}
         disabled={isPending}
         aria-label={optimistic.saved ? "Remove bookmark" : "Save dream"}
@@ -172,7 +176,7 @@ export function ReactionBar({
 
       <button
         type="button"
-        className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-lg border bg-card px-2.5 text-xs font-medium text-muted-foreground transition hover:bg-muted"
+        className="focus-ring inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border bg-background/52 px-3 text-xs font-bold text-muted-foreground transition duration-200 hover:-translate-y-0.5 hover:bg-muted/80 hover:text-foreground hover:shadow-sm"
         aria-label="Share dream"
         title="Share dream"
         disabled={isPending}

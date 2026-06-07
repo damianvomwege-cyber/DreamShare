@@ -12,9 +12,9 @@ export default async function MainLayout({ children }: { children: ReactNode }) 
   return (
     <div className="dream-gradient dream-shell min-h-screen overflow-x-hidden">
       <Navbar user={user} />
-      <div className="mx-auto flex w-full max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <Sidebar />
-        <main className="content-viewport min-w-0 flex-1 pb-16 lg:pb-0">
+      <div className="mx-auto flex w-full max-w-[1480px] gap-5 px-3 py-5 sm:px-5 lg:px-6">
+        <Sidebar user={user} />
+        <main className="content-viewport min-w-0 flex-1 pb-20 lg:pb-4">
           {children}
         </main>
       </div>

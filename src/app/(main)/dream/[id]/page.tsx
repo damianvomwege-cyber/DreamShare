@@ -124,9 +124,9 @@ export default async function DreamDetailsPage({
   return (
     <div className="space-y-6">
       <DreamStructuredData dream={dream} />
-      <Card className="overflow-hidden">
+      <Card className="premium-border social-card overflow-hidden">
         {dream.imageUrl ? (
-          <div className="relative aspect-[16/7]">
+          <div className="relative aspect-[16/8] overflow-hidden">
             <Image
               src={dream.imageUrl}
               alt=""
@@ -134,6 +134,10 @@ export default async function DreamDetailsPage({
               sizes="(max-width: 1024px) 100vw, 900px"
               className="object-cover"
               priority
+            />
+            <span
+              className="absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent"
+              aria-hidden="true"
             />
           </div>
         ) : null}
@@ -193,7 +197,7 @@ export default async function DreamDetailsPage({
                 <Link
                   key={tag}
                   href={`/explore?tag=${encodeURIComponent(tag)}`}
-                  className="focus-ring rounded-md text-sm font-medium text-primary hover:underline"
+                  className="focus-ring rounded-full border border-primary/10 bg-primary/10 px-2.5 py-1 text-sm font-bold text-primary transition hover:-translate-y-0.5 hover:bg-primary/15"
                 >
                   #{tag}
                 </Link>
@@ -201,14 +205,16 @@ export default async function DreamDetailsPage({
             </div>
           ) : null}
 
-          <ReactionBar
-            dreamId={dream.id}
-            counts={summary.counts}
-            activeReactions={summary.activeReactions}
-            saved={summary.saved}
-            commentCount={dream.commentCount}
-            shareCount={dream.shareCount}
-          />
+          <div className="border-t pt-4">
+            <ReactionBar
+              dreamId={dream.id}
+              counts={summary.counts}
+              activeReactions={summary.activeReactions}
+              saved={summary.saved}
+              commentCount={dream.commentCount}
+              shareCount={dream.shareCount}
+            />
+          </div>
         </article>
       </Card>
 

@@ -44,44 +44,51 @@ export function DreamCard({
   const isOwner = dream.author.id === currentUserId;
 
   return (
-    <Card className="premium-border group overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--elevated-shadow)]">
+    <Card className="premium-border social-card social-card-hover group overflow-hidden">
       <div
-        className="h-1 w-full"
+        className="kinetic-bar h-1 w-full"
         style={{
           background: `linear-gradient(90deg, ${dream.category.color}, var(--primary), var(--accent))`,
         }}
         aria-hidden="true"
       />
       {dream.imageUrl ? (
-        <Link href={`/dream/${dream.id}`} className="relative block aspect-[16/7]">
+        <Link href={`/dream/${dream.id}`} className="relative block aspect-[16/8] overflow-hidden">
           <Image
             src={dream.imageUrl}
             alt=""
             fill
             sizes="(max-width: 768px) 100vw, 760px"
-            className="object-cover transition duration-500 group-hover:scale-[1.02]"
+            className="object-cover transition duration-700 group-hover:scale-[1.035]"
           />
           <span
-            className="absolute inset-0 bg-gradient-to-t from-slate-950/30 via-transparent to-transparent"
+            className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent"
             aria-hidden="true"
           />
         </Link>
       ) : null}
 
-      <article className="space-y-4 p-5">
+      <article className="space-y-4 p-4 sm:p-5">
         <div className="flex items-start gap-3">
-          <Link href={profilePath(dream.author.username)} className="focus-ring rounded-full">
+          <Link
+            href={profilePath(dream.author.username)}
+            className="focus-ring relative rounded-full"
+          >
             <Avatar
               src={dream.author.avatarUrl}
               name={dream.author.displayName}
-              className="size-11 ring-2 ring-background"
+              className="size-12 ring-2 ring-background"
+            />
+            <span
+              className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-background bg-success"
+              aria-hidden="true"
             />
           </Link>
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Link
                 href={profilePath(dream.author.username)}
-                className="focus-ring rounded text-sm font-semibold hover:text-primary"
+                className="focus-ring rounded text-sm font-bold hover:text-primary"
               >
                 {dream.author.displayName}
               </Link>
@@ -118,11 +125,11 @@ export function DreamCard({
 
         <div>
           <Link href={`/dream/${dream.id}`} className="focus-ring rounded">
-            <h2 className="text-xl font-semibold tracking-normal text-foreground transition group-hover:text-primary">
+            <h2 className="text-xl font-bold tracking-normal text-foreground transition group-hover:text-primary sm:text-2xl">
               {dream.title}
             </h2>
           </Link>
-          <p className="mt-2 line-clamp-4 text-sm leading-6 text-muted-foreground">
+          <p className="mt-2 line-clamp-4 text-sm leading-6 text-muted-foreground sm:text-[15px]">
             {dream.description}
           </p>
         </div>
@@ -133,7 +140,7 @@ export function DreamCard({
               <Link
                 key={tag}
                 href={`/explore?tag=${encodeURIComponent(tag)}`}
-                className="focus-ring rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary transition hover:bg-primary/15"
+                className="focus-ring rounded-full border border-primary/10 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary transition hover:-translate-y-0.5 hover:bg-primary/15"
               >
                 #{tag}
               </Link>
@@ -141,15 +148,17 @@ export function DreamCard({
           </div>
         ) : null}
 
-        <ReactionBar
-          dreamId={dream.id}
-          counts={reactionSummary.counts}
-          activeReactions={reactionSummary.activeReactions}
-          saved={reactionSummary.saved}
-          commentCount={dream.commentCount}
-          shareCount={dream.shareCount}
-          compact
-        />
+        <div className="border-t pt-3">
+          <ReactionBar
+            dreamId={dream.id}
+            counts={reactionSummary.counts}
+            activeReactions={reactionSummary.activeReactions}
+            saved={reactionSummary.saved}
+            commentCount={dream.commentCount}
+            shareCount={dream.shareCount}
+            compact
+          />
+        </div>
       </article>
     </Card>
   );

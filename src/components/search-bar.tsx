@@ -11,7 +11,7 @@ export function SearchBar({
   placeholder?: string;
 }) {
   return (
-    <form action="/explore" className="flex gap-2">
+    <form action="/explore" className="flex flex-col gap-2 sm:flex-row">
       <div className="relative flex-1">
         <Search
           className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -24,7 +24,9 @@ export function SearchBar({
           className="pl-9"
         />
       </div>
-      <Button type="submit">Search</Button>
+      <Button type="submit" className="sm:w-auto">
+        Search
+      </Button>
     </form>
   );
 }

@@ -60,13 +60,15 @@ function DreamColumn({
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold tracking-normal">{title}</h2>
-      {dreams.map((dream) => (
-        <DreamCard
-          key={dream.id}
-          dream={dream}
-          currentUserId={currentUserId}
-        />
-      ))}
+      <div className="feed-stack space-y-4">
+        {dreams.map((dream) => (
+          <DreamCard
+            key={dream.id}
+            dream={dream}
+            currentUserId={currentUserId}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -84,10 +86,12 @@ export default async function TrendingPage() {
   const newest = takeUniqueDreams(newestPool, seenDreamIds, 6);
 
   return (
-    <div className="space-y-8">
-      <section>
-        <h1 className="flex items-center gap-2 text-3xl font-semibold tracking-normal">
-          <Flame className="size-7 text-accent" aria-hidden="true" />
+    <div className="space-y-6">
+      <section className="premium-border social-card rounded-lg border p-4 sm:p-5">
+        <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-normal sm:text-3xl">
+          <span className="grid size-10 place-items-center rounded-lg bg-accent/12 text-accent shadow-[var(--glow-accent)]">
+            <Flame className="size-5" aria-hidden="true" />
+          </span>
           Trending Dreams
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -103,7 +107,7 @@ export default async function TrendingPage() {
             description="Trending dreams appear after people start reacting and commenting."
           />
         ) : (
-          <div className="space-y-4">
+          <div className="feed-stack space-y-4">
             {trending.map((dream) => (
               <DreamCard
                 key={dream.id}
@@ -117,7 +121,7 @@ export default async function TrendingPage() {
       </section>
 
       {liked.length > 0 || newest.length > 0 ? (
-        <section className="grid gap-6 xl:grid-cols-2">
+        <section className="grid gap-5 xl:grid-cols-2">
           <DreamColumn
             title="Most Liked"
             dreams={liked}

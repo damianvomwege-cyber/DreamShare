@@ -7,13 +7,13 @@ import { compactNumber } from "@/lib/utils";
 
 export function TrendingWidget({ dreams }: { dreams: DreamCardData[] }) {
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="border-b bg-background/42">
+    <Card className="premium-border social-card overflow-hidden">
+      <CardHeader className="border-b bg-background/38">
         <CardTitle className="flex items-center gap-2">
-          <span className="grid size-8 place-items-center rounded-lg bg-accent/12 text-accent">
+          <span className="grid size-9 place-items-center rounded-lg bg-accent/12 text-accent shadow-[var(--glow-accent)]">
             <Flame className="size-4" aria-hidden="true" />
           </span>
-          Trending
+          Hot now
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -27,14 +27,21 @@ export function TrendingWidget({ dreams }: { dreams: DreamCardData[] }) {
             <Link
               key={dream.id}
               href={`/dream/${dream.id}`}
-              className="focus-ring block rounded-lg border bg-background/68 p-3 transition hover:border-primary/35 hover:bg-muted/70"
+              className="focus-ring group block rounded-lg border bg-background/56 p-3 transition hover:-translate-y-0.5 hover:border-primary/35 hover:bg-muted/70 hover:shadow-sm"
             >
               <div className="flex gap-3">
-                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted font-mono text-xs text-muted-foreground">
+                <span
+                  className="grid size-9 shrink-0 place-items-center rounded-lg font-mono text-xs font-bold text-background shadow-sm"
+                  style={{
+                    background: `linear-gradient(135deg, ${dream.category.color}, var(--primary))`,
+                  }}
+                >
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{dream.title}</p>
+                  <p className="truncate text-sm font-semibold transition group-hover:text-primary">
+                    {dream.title}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {compactNumber(dream.likeCount)} reactions /{" "}
                     {compactNumber(dream.commentCount)} comments

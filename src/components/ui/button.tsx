@@ -5,12 +5,12 @@ import { cn } from "@/lib/utils";
 
 const variants = {
   primary:
-    "bg-[linear-gradient(135deg,var(--primary),color-mix(in_srgb,var(--primary),#0f766e_26%))] text-primary-foreground shadow-sm shadow-cyan-950/15 hover:brightness-105 active:brightness-95",
+    "kinetic-bar bg-[linear-gradient(135deg,var(--primary),color-mix(in_srgb,var(--primary),#0f766e_24%),var(--success))] text-primary-foreground shadow-sm shadow-cyan-950/15 hover:brightness-105 active:brightness-95",
   secondary:
-    "border bg-card/80 text-card-foreground shadow-sm shadow-slate-950/5 hover:bg-muted/70 active:bg-muted",
+    "border bg-card/72 text-card-foreground shadow-sm shadow-slate-950/5 hover:border-primary/35 hover:bg-muted/70 active:bg-muted",
   ghost: "text-foreground hover:bg-muted/70 active:bg-muted",
   danger:
-    "bg-destructive text-white hover:brightness-105 active:brightness-95",
+    "bg-destructive text-white shadow-sm shadow-red-950/15 hover:brightness-105 active:brightness-95",
 };
 
 const sizes = {
@@ -34,7 +34,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "focus-ring inline-flex shrink-0 items-center justify-center gap-2 rounded-lg font-medium transition disabled:pointer-events-none disabled:opacity-55",
+        "focus-ring inline-flex shrink-0 items-center justify-center gap-2 rounded-lg font-medium transition duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:pointer-events-none disabled:opacity-55",
         variants[variant],
         sizes[size],
         className,
@@ -63,7 +63,7 @@ export function ButtonLink({
     <Link
       href={href}
       className={cn(
-        "focus-ring inline-flex shrink-0 items-center justify-center gap-2 rounded-lg font-medium transition",
+        "focus-ring inline-flex shrink-0 items-center justify-center gap-2 rounded-lg font-medium transition duration-200 hover:-translate-y-0.5 active:translate-y-0",
         variants[variant],
         sizes[size],
         className,

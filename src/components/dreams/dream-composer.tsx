@@ -1,10 +1,10 @@
 "use client";
 
-import { CloudMoon, Loader2, Send } from "lucide-react";
+import { CloudMoon, Loader2, Send, Sparkles } from "lucide-react";
 import { useActionState } from "react";
 
 import { createDreamAction, type DreamActionState } from "@/app/actions/dreams";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import type { Category, DreamMood } from "@/generated/prisma/client";
@@ -25,18 +25,24 @@ export function DreamComposer({
   );
 
   return (
-    <Card id="compose" className="premium-border overflow-hidden">
-      <CardHeader className="border-b bg-background/42">
-        <div className="flex items-start gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary">
-            <CloudMoon className="size-5" aria-hidden="true" />
-          </span>
-          <div>
-            <CardTitle>What did you dream?</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Capture the details before they fade.
-            </p>
+    <Card id="compose" className="premium-border social-card overflow-hidden">
+      <CardHeader className="border-b bg-background/38">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary shadow-[var(--glow-primary)]">
+              <CloudMoon className="size-5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <CardTitle>What did you dream?</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Capture the details before they fade.
+              </p>
+            </div>
           </div>
+          <span className="hidden items-center gap-1.5 rounded-full border bg-background/58 px-2.5 py-1 text-xs font-semibold text-primary sm:inline-flex">
+            <Sparkles className="size-3.5" aria-hidden="true" />
+            Dream log
+          </span>
         </div>
       </CardHeader>
       <CardContent>
@@ -67,7 +73,7 @@ export function DreamComposer({
                 name="description"
                 required
                 maxLength={6000}
-                className="min-h-40"
+                className="min-h-44"
                 placeholder="Write what happened, how it felt, and what you remember most."
               />
             </Field>
@@ -103,7 +109,11 @@ export function DreamComposer({
             <Field label="Tags" hint="Separate tags with commas.">
               <Input name="tags" placeholder="ocean, train, blue light" />
             </Field>
-            <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="w-full shadow-[var(--glow-primary)] sm:w-auto"
+            >
               {isPending ? (
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />
               ) : (
@@ -113,8 +123,16 @@ export function DreamComposer({
             </Button>
           </form>
         ) : (
-          <div className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">
-            Log in or create an account to post dreams, comment, follow, and save.
+          <div className="rounded-lg border border-dashed bg-background/45 p-4">
+            <p className="text-sm font-medium">DreamShare account needed</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <ButtonLink href="/login" variant="secondary" size="sm">
+                Login
+              </ButtonLink>
+              <ButtonLink href="/register" size="sm">
+                Join
+              </ButtonLink>
+            </div>
           </div>
         )}
       </CardContent>

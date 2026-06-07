@@ -10,7 +10,15 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { getCurrentUser } from "@/lib/auth";
 import { getCategories, getDreamFeed, getTrendingDreams } from "@/lib/data";
 import { defaultOgImage, defaultSeoDescription } from "@/lib/seo";
-import { CloudMoon, Compass, Flame, Sparkles } from "lucide-react";
+import {
+  Activity,
+  CloudMoon,
+  Compass,
+  Flame,
+  Radio,
+  Sparkles,
+} from "lucide-react";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -52,82 +60,100 @@ export default async function HomePage() {
   ]);
 
   return (
-    <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
       <StructuredData />
-      <div className="min-w-0 space-y-6">
-        <section className="premium-border relative max-w-full overflow-hidden rounded-lg border bg-card/74 p-5 shadow-[var(--elevated-shadow)] backdrop-blur-xl sm:p-6">
+      <div className="min-w-0 space-y-5">
+        <section className="premium-border social-card relative max-w-full overflow-hidden rounded-lg border p-4 sm:p-5">
           <div
-            className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,var(--primary),var(--accent),var(--primary))]"
+            className="kinetic-bar absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,var(--primary),var(--hot),var(--accent),var(--success))]"
             aria-hidden="true"
           />
-          <div className="relative flex flex-col gap-6">
-            <div className="max-w-[19rem] sm:max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-lg border bg-background/72 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
-                <Sparkles className="size-3.5" aria-hidden="true" />
-                Dream feed
+          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-2 rounded-lg border bg-background/64 px-3 py-1.5 text-xs font-semibold uppercase text-primary">
+                <span className="pulse-dot size-2 rounded-full bg-success" />
+                Live dream feed
               </div>
-              <h1 className="mt-4 text-2xl font-semibold tracking-normal sm:text-5xl">
-                Share the strange things your mind builds at night.
+              <h1 className="mt-4 max-w-2xl text-2xl font-semibold tracking-normal sm:text-3xl">
+                Dreams people posted tonight
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                Post dreams, track moods, react to stories, and follow the people
-                whose sleep worlds feel impossible to ignore.
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                Strange scenes, lucid moments, nightmares, jokes, and half-remembered worlds.
               </p>
-              <div className="mt-5 grid min-w-0 gap-2 sm:grid-cols-3">
-                <div className="rounded-lg border bg-background/62 p-3">
-                  <p className="text-2xl font-semibold">{dreams.length}</p>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    New dreams loaded
-                  </p>
-                </div>
-                <div className="rounded-lg border bg-background/62 p-3">
-                  <p className="text-2xl font-semibold">{categories.length}</p>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Dream categories
-                  </p>
-                </div>
-                <div className="rounded-lg border bg-background/62 p-3">
-                  <p className="text-2xl font-semibold">{trending.length}</p>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Trending picks
-                  </p>
-                </div>
-              </div>
               {!user ? (
-                <div className="mt-5 flex min-w-0 flex-wrap gap-2">
-                <ButtonLink href="/register" className="max-w-full">
-                  <Compass className="size-4" aria-hidden="true" />
-                  Join DreamShare
-                </ButtonLink>
-                <ButtonLink href="/login" variant="secondary">
-                  Login
-                </ButtonLink>
-              </div>
+                <div className="mt-4 flex min-w-0 flex-wrap gap-2">
+                  <ButtonLink href="/register" className="max-w-full">
+                    <Compass className="size-4" aria-hidden="true" />
+                    Join DreamShare
+                  </ButtonLink>
+                  <ButtonLink href="/login" variant="secondary">
+                    Login
+                  </ButtonLink>
+                </div>
               ) : null}
             </div>
+            <div className="grid min-w-0 grid-cols-3 gap-2 lg:w-72">
+              {[
+                { label: "Dreams", value: dreams.length, icon: Radio },
+                { label: "Categories", value: categories.length, icon: Sparkles },
+                { label: "Trending", value: trending.length, icon: Activity },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-lg border bg-background/54 p-3 shadow-sm shadow-slate-950/5"
+                >
+                  <item.icon className="mb-2 size-4 text-primary" aria-hidden="true" />
+                  <p className="text-2xl font-semibold">{item.value}</p>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {item.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto">
+            {categories.slice(0, 6).map((category) => (
+              <Link
+                key={category.id}
+                href={`/explore?category=${category.slug}`}
+                className="focus-ring shrink-0 rounded-full border bg-background/60 px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:-translate-y-0.5 hover:border-primary/40 hover:text-foreground"
+              >
+                <span
+                  className="mr-2 inline-block size-2 rounded-full"
+                  style={{ backgroundColor: category.color }}
+                  aria-hidden="true"
+                />
+                {category.name}
+              </Link>
+            ))}
           </div>
         </section>
 
         <DreamComposer categories={categories} signedIn={Boolean(user)} />
 
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-xl font-semibold tracking-normal">
+          <div className="social-card sticky top-20 z-20 flex items-center justify-between rounded-lg border px-3 py-2.5">
+            <h2 className="flex items-center gap-2 text-base font-semibold tracking-normal sm:text-lg">
               <Flame className="size-5 text-accent" aria-hidden="true" />
-              New Dreams
+              Latest Dreams
             </h2>
-            <ButtonLink href="/explore" variant="ghost">
-              Explore all
-            </ButtonLink>
+            <div className="flex items-center gap-1 rounded-lg bg-muted/45 p-1">
+              <ButtonLink href="/explore" variant="ghost" size="sm">
+                Explore
+              </ButtonLink>
+              <ButtonLink href="/trending" variant="ghost" size="sm">
+                Trending
+              </ButtonLink>
+            </div>
           </div>
           {dreams.length === 0 ? (
             <EmptyState
               icon={CloudMoon}
               title="No dreams posted yet"
-              description="Seed the database or create the first account and post the first dream."
+              description="Dreams will appear here as soon as the feed wakes up."
             />
           ) : (
-            <div className="space-y-4">
+            <div className="feed-stack space-y-4">
               {dreams.map((dream) => (
                 <DreamCard
                   key={dream.id}
@@ -140,7 +166,7 @@ export default async function HomePage() {
         </section>
       </div>
 
-      <aside className="min-w-0 space-y-6">
+      <aside className="min-w-0 space-y-5 xl:sticky xl:top-20 xl:self-start">
         <TrendingWidget dreams={trending} />
         <CategoryWidget categories={categories} />
       </aside>

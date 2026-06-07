@@ -72,9 +72,9 @@ export default async function ExplorePage({
   ]);
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="space-y-6">
-        <section className="space-y-4">
+    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
+      <div className="space-y-5">
+        <section className="premium-border social-card space-y-4 rounded-lg border p-4 sm:p-5">
           <div>
             <h1 className="text-3xl font-semibold tracking-normal">Explore Dreams</h1>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -89,7 +89,7 @@ export default async function ExplorePage({
             <h2 className="text-base font-semibold">Users</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               {users.map((result) => (
-                <Card key={result.username}>
+                <Card key={result.username} className="social-card-hover">
                   <Link
                     href={profilePath(result.username)}
                     className="focus-ring flex gap-3 rounded-lg p-4 transition hover:bg-muted/50"
@@ -118,7 +118,9 @@ export default async function ExplorePage({
         ) : null}
 
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">Dream Results</h2>
+          <div className="social-card sticky top-20 z-20 rounded-lg border px-3 py-2.5">
+            <h2 className="text-base font-semibold">Dream Results</h2>
+          </div>
           {dreams.length === 0 ? (
             <EmptyState
               icon={Users}
@@ -126,7 +128,7 @@ export default async function ExplorePage({
               description="Try a different tag, category, or search phrase."
             />
           ) : (
-            <div className="space-y-4">
+            <div className="feed-stack space-y-4">
               {dreams.map((dream) => (
                 <DreamCard
                   key={dream.id}
@@ -139,7 +141,7 @@ export default async function ExplorePage({
         </section>
       </div>
 
-      <aside className="space-y-6">
+      <aside className="space-y-5 xl:sticky xl:top-20 xl:self-start">
         <CategoryWidget categories={categories} />
       </aside>
     </div>

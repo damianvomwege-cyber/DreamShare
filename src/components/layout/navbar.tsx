@@ -32,8 +32,8 @@ export function Navbar({ user }: { user: User }) {
   const isStaff = user && ROLE_WEIGHT[user.role] >= ROLE_WEIGHT.MODERATOR;
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/78 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/64">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 border-b bg-background/76 shadow-sm shadow-slate-950/5 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/62">
+      <div className="mx-auto flex h-16 max-w-[1480px] items-center gap-3 px-3 sm:px-5 lg:px-6">
         <Link
           href="/"
           className="focus-ring flex items-center gap-2 rounded-lg text-lg font-bold tracking-normal"
@@ -41,12 +41,12 @@ export function Navbar({ user }: { user: User }) {
           <DreamShareLogo />
         </Link>
 
-        <nav className="ml-6 hidden items-center gap-1 lg:flex" aria-label="Primary">
+        <nav className="ml-5 hidden items-center gap-1 rounded-lg border bg-card/45 p-1 shadow-sm shadow-slate-950/5 lg:flex" aria-label="Primary">
           {navItems.slice(0, 3).map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="focus-ring inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted/80 hover:text-foreground"
+              className="focus-ring inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:-translate-y-0.5 hover:bg-muted/75 hover:text-foreground"
             >
               <item.icon className="size-4" aria-hidden="true" />
               {item.label}
@@ -56,9 +56,11 @@ export function Navbar({ user }: { user: User }) {
 
         <Link
           href="/explore"
-          className="focus-ring ml-auto hidden h-10 w-full max-w-sm items-center gap-2 rounded-lg border bg-card/78 px-3 text-sm text-muted-foreground shadow-sm shadow-slate-950/5 transition hover:border-primary/40 hover:text-foreground md:flex"
+          className="focus-ring group ml-auto hidden h-10 w-full max-w-md items-center gap-2 rounded-lg border bg-card/62 px-3 text-sm text-muted-foreground shadow-sm shadow-slate-950/5 transition hover:-translate-y-0.5 hover:border-primary/45 hover:bg-card/86 hover:text-foreground md:flex"
         >
-          <Search className="size-4" aria-hidden="true" />
+          <span className="grid size-6 place-items-center rounded-md bg-muted text-muted-foreground transition group-hover:bg-primary/12 group-hover:text-primary">
+            <Search className="size-3.5" aria-hidden="true" />
+          </span>
           Search dreams, tags, users
         </Link>
 
@@ -92,7 +94,9 @@ export function Navbar({ user }: { user: User }) {
             <ButtonLink href="/login" variant="ghost" className="hidden sm:inline-flex">
               Login
             </ButtonLink>
-            <ButtonLink href="/register">Join</ButtonLink>
+            <ButtonLink href="/register" className="shadow-[var(--glow-primary)]">
+              Join
+            </ButtonLink>
           </div>
         )}
       </div>
