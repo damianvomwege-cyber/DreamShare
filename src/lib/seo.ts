@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { APP_NAME, DREAM_CATEGORIES, MOOD_LABELS } from "@/lib/constants";
+import { APP_NAME, MOOD_LABELS } from "@/lib/constants";
 import { getPrisma } from "@/lib/prisma";
 import { absoluteUrl, normalizeUsername, profilePath } from "@/lib/utils";
 
@@ -129,15 +129,6 @@ function staticSitemapEntries(now: Date): MetadataRoute.Sitemap {
     },
   ];
 
-  for (const category of DREAM_CATEGORIES) {
-    entries.push({
-      url: absoluteUrl(`/explore?category=${encodeURIComponent(category.slug)}`),
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.65,
-    });
-  }
-
   return entries;
 }
 
@@ -158,7 +149,6 @@ export async function getDreamShareSitemap(): Promise<MetadataRoute.Sitemap> {
         select: {
           id: true,
           updatedAt: true,
-          imageUrl: true,
         },
       }),
       prisma.user.findMany({
@@ -171,7 +161,6 @@ export async function getDreamShareSitemap(): Promise<MetadataRoute.Sitemap> {
         select: {
           username: true,
           updatedAt: true,
-          avatarUrl: true,
         },
       }),
     ]);
@@ -182,18 +171,15 @@ export async function getDreamShareSitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: dream.updatedAt,
         changeFrequency: "weekly" as const,
         priority: 0.8,
-        images: dream.imageUrl ? [dream.imageUrl] : undefined,
       })),
       ...profiles.map((profile) => ({
         url: absoluteUrl(profilePath(profile.username)),
         lastModified: profile.updatedAt,
         changeFrequency: "weekly" as const,
         priority: 0.7,
-        images: profile.avatarUrl ? [profile.avatarUrl] : undefined,
       })),
     );
   } catch (error) {
-    if (process.env.NODE_ENV !== "development") throw error;
     console.warn("[dreamshare:sitemap] database unavailable; using static sitemap.", error);
   }
 
