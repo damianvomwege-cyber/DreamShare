@@ -31,83 +31,151 @@ type SoundPatch = {
   wet: number;
 };
 
-const soundMap: Record<DreamSound, SoundPatch> = {
-  tap: {
-    delay: 0.13,
-    feedback: 0.2,
-    lowpass: 4200,
-    wet: 0.18,
-    notes: [
-      { frequency: 523.25, endFrequency: 587.33, start: 0, duration: 0.11, gain: 0.15, type: "sine" },
-      { frequency: 1046.5, endFrequency: 1174.66, start: 0.018, duration: 0.16, gain: 0.08, type: "triangle" },
-    ],
-  },
-  nav: {
-    delay: 0.18,
-    feedback: 0.24,
-    lowpass: 5200,
-    wet: 0.22,
-    notes: [
-      { frequency: 329.63, endFrequency: 392, start: 0, duration: 0.15, gain: 0.12, type: "sine" },
-      { frequency: 659.25, endFrequency: 783.99, start: 0.03, duration: 0.2, gain: 0.1, type: "triangle" },
-      { frequency: 1318.51, endFrequency: 1567.98, start: 0.07, duration: 0.22, gain: 0.055, type: "sine" },
-    ],
-  },
-  reaction: {
-    delay: 0.2,
-    feedback: 0.32,
-    lowpass: 6200,
-    wet: 0.28,
-    notes: [
-      { frequency: 554.37, endFrequency: 830.61, start: 0, duration: 0.17, gain: 0.14, type: "triangle" },
-      { frequency: 1108.73, endFrequency: 1661.22, start: 0.035, duration: 0.22, gain: 0.1, type: "sine" },
-      { frequency: 2217.46, endFrequency: 1661.22, start: 0.09, duration: 0.28, gain: 0.045, type: "sine" },
-    ],
-  },
-  save: {
-    delay: 0.24,
-    feedback: 0.34,
-    lowpass: 5600,
-    wet: 0.3,
-    notes: [
-      { frequency: 392, endFrequency: 523.25, start: 0, duration: 0.18, gain: 0.13, type: "sine" },
-      { frequency: 783.99, endFrequency: 1046.5, start: 0.055, duration: 0.24, gain: 0.1, type: "triangle" },
-      { frequency: 1567.98, endFrequency: 2093, start: 0.12, duration: 0.26, gain: 0.05, type: "sine" },
-    ],
-  },
-  share: {
-    delay: 0.16,
-    feedback: 0.28,
-    lowpass: 6400,
-    wet: 0.26,
-    notes: [
-      { frequency: 440, endFrequency: 554.37, start: 0, duration: 0.13, gain: 0.12, type: "sine" },
-      { frequency: 659.25, endFrequency: 880, start: 0.055, duration: 0.15, gain: 0.11, type: "triangle" },
-      { frequency: 987.77, endFrequency: 1318.51, start: 0.11, duration: 0.2, gain: 0.08, type: "sine" },
-      { frequency: 1760, endFrequency: 2349.32, start: 0.17, duration: 0.2, gain: 0.04, type: "sine" },
-    ],
-  },
-  toggle: {
-    delay: 0.22,
-    feedback: 0.26,
-    lowpass: 5000,
-    wet: 0.24,
-    notes: [
-      { frequency: 261.63, endFrequency: 392, start: 0, duration: 0.18, gain: 0.12, type: "sine" },
-      { frequency: 523.25, endFrequency: 784, start: 0.045, duration: 0.22, gain: 0.1, type: "triangle" },
-    ],
-  },
-  danger: {
-    delay: 0.1,
-    feedback: 0.16,
-    lowpass: 2600,
-    wet: 0.12,
-    notes: [
-      { frequency: 220, endFrequency: 146.83, start: 0, duration: 0.18, gain: 0.12, type: "sawtooth" },
-      { frequency: 110, endFrequency: 92.5, start: 0.03, duration: 0.24, gain: 0.08, type: "sine" },
-    ],
-  },
+type PatchPreset = {
+  root: number;
+  semitones: number[];
+  glides?: number[];
+  gains?: number[];
+  starts?: number[];
+  durations?: number[];
+  types?: OscillatorType[];
+  delay: number;
+  feedback: number;
+  lowpass: number;
+  wet: number;
 };
+
+const defaultStarts = [0, 0.04, 0.09, 0.15];
+const defaultDurations = [0.16, 0.22, 0.26, 0.3];
+const defaultGains = [0.13, 0.1, 0.065, 0.04];
+const defaultTypes: OscillatorType[] = ["sine", "triangle", "sine", "triangle"];
+
+function tone(root: number, semitones: number) {
+  return root * 2 ** (semitones / 12);
+}
+
+function createPatch(preset: PatchPreset): SoundPatch {
+  return {
+    delay: preset.delay,
+    feedback: preset.feedback,
+    lowpass: preset.lowpass,
+    wet: preset.wet,
+    notes: preset.semitones.map((semitone, index) => ({
+      frequency: tone(preset.root, semitone),
+      endFrequency: tone(
+        preset.root,
+        preset.glides?.[index] ?? semitone + (index === 0 ? 2 : -1),
+      ),
+      start: preset.starts?.[index] ?? defaultStarts[index] ?? 0,
+      duration: preset.durations?.[index] ?? defaultDurations[index] ?? 0.2,
+      gain: preset.gains?.[index] ?? defaultGains[index] ?? 0.05,
+      type: preset.types?.[index] ?? defaultTypes[index] ?? "sine",
+    })),
+  };
+}
+
+const soundPresets: Record<DreamSound, PatchPreset[]> = {
+  tap: [
+    { root: 261.63, semitones: [0, 7], glides: [2, 9], delay: 0.13, feedback: 0.2, lowpass: 4300, wet: 0.18 },
+    { root: 293.66, semitones: [0, 5, 12], glides: [2, 7, 14], delay: 0.15, feedback: 0.22, lowpass: 4600, wet: 0.2 },
+    { root: 329.63, semitones: [0, 3, 10], glides: [1, 5, 12], delay: 0.16, feedback: 0.2, lowpass: 5200, wet: 0.19 },
+    { root: 392, semitones: [0, 7, 14], glides: [2, 9, 16], delay: 0.12, feedback: 0.18, lowpass: 5800, wet: 0.17 },
+    { root: 440, semitones: [0, 4, 11], glides: [2, 6, 12], delay: 0.14, feedback: 0.21, lowpass: 5400, wet: 0.2 },
+  ],
+  nav: [
+    { root: 220, semitones: [0, 7, 12], glides: [2, 9, 14], delay: 0.18, feedback: 0.24, lowpass: 5200, wet: 0.22 },
+    { root: 246.94, semitones: [0, 5, 9, 14], glides: [2, 7, 11, 16], delay: 0.2, feedback: 0.26, lowpass: 5000, wet: 0.24 },
+    { root: 261.63, semitones: [0, 4, 7, 12], glides: [1, 5, 9, 14], delay: 0.21, feedback: 0.25, lowpass: 5600, wet: 0.23 },
+    { root: 329.63, semitones: [0, 3, 7, 15], glides: [2, 5, 10, 17], delay: 0.17, feedback: 0.23, lowpass: 6200, wet: 0.22 },
+    { root: 349.23, semitones: [0, 7, 10, 17], glides: [2, 9, 12, 19], delay: 0.19, feedback: 0.27, lowpass: 5900, wet: 0.25 },
+  ],
+  reaction: [
+    { root: 277.18, semitones: [0, 7, 12, 19], glides: [3, 10, 15, 21], delay: 0.2, feedback: 0.32, lowpass: 6200, wet: 0.28 },
+    { root: 293.66, semitones: [0, 5, 12, 17], glides: [2, 9, 14, 21], delay: 0.22, feedback: 0.34, lowpass: 6500, wet: 0.3 },
+    { root: 329.63, semitones: [0, 4, 11, 16], glides: [2, 7, 14, 19], delay: 0.19, feedback: 0.31, lowpass: 6800, wet: 0.28 },
+    { root: 392, semitones: [0, 3, 10, 15], glides: [2, 5, 12, 17], delay: 0.21, feedback: 0.35, lowpass: 7000, wet: 0.31 },
+    { root: 415.3, semitones: [0, 7, 14, 21], glides: [3, 10, 17, 19], delay: 0.23, feedback: 0.33, lowpass: 7200, wet: 0.29 },
+    { root: 466.16, semitones: [0, 5, 9, 16], glides: [2, 7, 12, 19], delay: 0.18, feedback: 0.3, lowpass: 7600, wet: 0.27 },
+  ],
+  save: [
+    { root: 196, semitones: [0, 7, 12, 19], glides: [2, 9, 14, 21], delay: 0.24, feedback: 0.34, lowpass: 5600, wet: 0.3 },
+    { root: 220, semitones: [0, 5, 12, 17], glides: [2, 7, 14, 19], delay: 0.27, feedback: 0.36, lowpass: 5400, wet: 0.32 },
+    { root: 261.63, semitones: [0, 4, 9, 16], glides: [2, 7, 11, 19], delay: 0.25, feedback: 0.33, lowpass: 6000, wet: 0.3 },
+    { root: 293.66, semitones: [0, 3, 10, 15], glides: [2, 5, 12, 17], delay: 0.28, feedback: 0.37, lowpass: 5800, wet: 0.33 },
+  ],
+  share: [
+    { root: 220, semitones: [0, 7, 12, 16], glides: [2, 9, 14, 19], delay: 0.16, feedback: 0.28, lowpass: 6400, wet: 0.26 },
+    { root: 246.94, semitones: [0, 5, 9, 17], glides: [2, 7, 12, 19], delay: 0.18, feedback: 0.29, lowpass: 6800, wet: 0.27 },
+    { root: 293.66, semitones: [0, 7, 10, 19], glides: [2, 9, 14, 21], delay: 0.15, feedback: 0.27, lowpass: 7000, wet: 0.25 },
+    { root: 329.63, semitones: [0, 4, 11, 18], glides: [2, 6, 14, 21], delay: 0.17, feedback: 0.3, lowpass: 7200, wet: 0.28 },
+  ],
+  toggle: [
+    { root: 174.61, semitones: [0, 7, 12], glides: [2, 9, 14], delay: 0.22, feedback: 0.26, lowpass: 5000, wet: 0.24 },
+    { root: 196, semitones: [0, 5, 12], glides: [2, 7, 14], delay: 0.24, feedback: 0.28, lowpass: 4800, wet: 0.25 },
+    { root: 261.63, semitones: [0, 4, 9], glides: [2, 6, 11], delay: 0.21, feedback: 0.25, lowpass: 5400, wet: 0.24 },
+    { root: 329.63, semitones: [0, 3, 10], glides: [1, 5, 12], delay: 0.23, feedback: 0.29, lowpass: 5600, wet: 0.26 },
+  ],
+  danger: [
+    {
+      root: 110,
+      semitones: [12, 5, 0],
+      glides: [8, 3, -3],
+      gains: [0.12, 0.08, 0.06],
+      types: ["sawtooth", "sine", "triangle"],
+      delay: 0.1,
+      feedback: 0.16,
+      lowpass: 2600,
+      wet: 0.12,
+    },
+    {
+      root: 123.47,
+      semitones: [12, 7, -2],
+      glides: [10, 4, -5],
+      gains: [0.11, 0.075, 0.055],
+      types: ["sawtooth", "triangle", "sine"],
+      delay: 0.12,
+      feedback: 0.18,
+      lowpass: 2400,
+      wet: 0.14,
+    },
+  ],
+};
+
+const soundMap = Object.fromEntries(
+  Object.entries(soundPresets).map(([sound, presets]) => [
+    sound,
+    presets.map(createPatch),
+  ]),
+) as Record<DreamSound, SoundPatch[]>;
+
+export const DREAM_SOUND_VARIANT_COUNT = Object.values(soundMap).reduce(
+  (total, patches) => total + patches.length,
+  0,
+);
+
+let lastPatchIndexBySound: Partial<Record<DreamSound, number>> = {};
+
+function selectSoundPatch(sound: DreamSound) {
+  const patches = soundMap[sound] ?? soundMap.tap;
+
+  if (patches.length === 1) {
+    return patches[0];
+  }
+
+  const previousIndex = lastPatchIndexBySound[sound];
+  let nextIndex = Math.floor(Math.random() * patches.length);
+
+  if (previousIndex !== undefined && nextIndex === previousIndex) {
+    nextIndex = (nextIndex + 1 + Math.floor(Math.random() * (patches.length - 1))) % patches.length;
+  }
+
+  lastPatchIndexBySound = {
+    ...lastPatchIndexBySound,
+    [sound]: nextIndex,
+  };
+
+  return patches[nextIndex] ?? patches[0];
+}
 
 let audioContext: AudioContext | null = null;
 let masterOutput: GainNode | null = null;
@@ -239,7 +307,7 @@ export function playDreamSound(
   }
 
   const play = () => {
-    const patch = soundMap[sound] ?? soundMap.tap;
+    const patch = selectSoundPatch(sound);
     const bus = createDreamBus(context, patch);
     const now = context.currentTime;
     const maxEnd = Math.max(
