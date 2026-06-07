@@ -1,0 +1,3 @@
+https://dreamshare.vercel.app/
+https://dreamshare.vercel.app/explore
+https://dreamshare.vercel.app/trending
